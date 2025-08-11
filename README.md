@@ -48,6 +48,10 @@ Observações:
 - Clique no ícone da extensão e depois em "Preencher agora".
 - Atalho de teclado: `Ctrl+Shift+Y` (Windows/Linux) ou `Command+Shift+Y` (macOS).
 
+## Política de Privacidade
+- Consulte `privacy.html` nesta pasta para a Política de Privacidade completa.
+- Para a Chrome Web Store, hospede este arquivo (ex.: GitHub Pages) e informe a URL pública.
+
 ## Teste local com página de exemplo
 Há três páginas de teste:
 - Básica: `test/test-form.html`.

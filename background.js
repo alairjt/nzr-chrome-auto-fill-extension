@@ -16,7 +16,32 @@ chrome.runtime.onInstalled.addListener(() => {
     if (!cfg.geminiModel) toSet.geminiModel = DEFAULTS.geminiModel;
     if (Object.keys(toSet).length) chrome.storage.sync.set(toSet);
   });
+  // Create context menu for focused autofill
+  try {
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({
+        id: 'nzr-autofill-focused',
+        title: 'Preencher este campo (NZR IA Autofill)',
+        contexts: ['editable']
+      }, () => void chrome.runtime.lastError);
+    });
+  } catch (_) { /* ignore */ }
 });
+
+// Also ensure context menu exists on startup (service worker reload)
+try {
+  chrome.runtime.onStartup?.addListener(() => {
+    try {
+      chrome.contextMenus.removeAll(() => {
+        chrome.contextMenus.create({
+          id: 'nzr-autofill-focused',
+          title: 'Preencher este campo (NZR IA Autofill)',
+          contexts: ['editable']
+        }, () => void chrome.runtime.lastError);
+      });
+    } catch (_) { /* ignore */ }
+  });
+} catch (_) { /* ignore */ }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === 'AI_SUGGEST') {
@@ -42,6 +67,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true; // keep the message channel open for async
   }
 });
+
+// Context menu click handler: autofill only the focused element
+try {
+  chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (info.menuItemId !== 'nzr-autofill-focused') return;
+    if (!tab?.id) return;
+    if (isRestrictedUrl(tab.url)) return;
+    try {
+      await chrome.tabs.sendMessage(tab.id, { type: 'AUTOFILL_FOCUSED' });
+    } catch (e) {
+      const injected = await ensureContentScript(tab.id);
+      if (injected) {
+        try { await chrome.tabs.sendMessage(tab.id, { type: 'AUTOFILL_FOCUSED' }); } catch (_) {}
+      }
+    }
+  });
+} catch (_) { /* ignore */ }
 
 function buildPrompt(fields, page) {
   const payload = {

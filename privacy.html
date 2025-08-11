@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Política de Privacidade - NZR IA Autofill</title>
+    <meta name="description" content="Política de Privacidade da extensão NZR IA Autofill." />
+    <style>
+      :root {
+        --fg: #111827;
+        --muted: #4b5563;
+        --bg: #ffffff;
+        --primary: #2563eb;
+        --border: #e5e7eb;
+      }
+      body {
+        margin: 0 auto;
+        padding: 24px;
+        max-width: 900px;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: var(--fg);
+        background: var(--bg);
+        line-height: 1.55;
+      }
+      header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+      header img { width: 28px; height: 28px; border-radius: 6px; }
+      h1 { font-size: 22px; margin: 0; }
+      h2 { font-size: 18px; margin-top: 22px; }
+      p { margin: 10px 0; }
+      ul { margin: 8px 0 8px 20px; }
+      .muted { color: var(--muted); }
+      .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff; }
+      a { color: var(--primary); text-decoration: none; }
+      .small { font-size: 12px; }
+      footer { margin-top: 28px; color: var(--muted); font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icons/logo.jpeg" alt="NZR IA Autofill" />
+      <h1>Política de Privacidade</h1>
+    </header>
+
+    <div class="card">
+      <p class="muted">
+        Última atualização: 11/08/2025
+      </p>
+
+      <h2>1. Introdução</h2>
+      <p>
+        A extensão <strong>NZR IA Autofill</strong> foi criada para ajudar no preenchimento automático
+        de formulários. Esta Política de Privacidade descreve como tratamos informações ao usar a
+        extensão.
+      </p>
+
+      <h2>2. Coleta e processamento de dados</h2>
+      <p>
+        A extensão executa scripts de conteúdo na página para <strong>ler a estrutura do formulário</strong>
+        (rótulos, placeholders, tipos de campos e, quando necessário, trechos de contexto visível).
+        Esse processamento ocorre <strong>localmente no seu navegador</strong>.
+      </p>
+      <p>
+        Quando você aciona o preenchimento com IA, a extensão monta um <strong>prompt</strong> contendo
+        apenas metadados necessários dos campos (por exemplo: label, placeholder, tipo e opções do select)
+        e um <strong>resumo de contexto textual</strong> do entorno visível do campo para orientar a IA.
+        O conteúdo enviado é o mínimo necessário para gerar sugestões relevantes.
+      </p>
+
+      <h2>3. Provedores de IA</h2>
+      <p>
+        A extensão pode usar provedores de IA escolhidos por você nas <em>Opções</em>, como OpenAI
+        ou Google Gemini. As chamadas são feitas diretamente do seu navegador para as APIs dos
+        provedores. <strong>Suas chaves de API</strong> são armazenadas no <code>chrome.storage.sync</code>
+        do próprio navegador e <strong>não são transmitidas ao desenvolvedor da extensão</strong>.
+      </p>
+      <ul>
+        <li>OpenAI API: https://api.openai.com/</li>
+        <li>Google Generative Language API (Gemini): https://generativelanguage.googleapis.com/</li>
+      </ul>
+
+      <h2>4. Armazenamento</h2>
+      <ul>
+        <li><strong>Configurações</strong> (provedor, modelo, chaves de API): guardadas em <code>chrome.storage.sync</code>.</li>
+        <li><strong>Nenhum dado sensível de formulários</strong> é salvo pela extensão.</li>
+      </ul>
+
+      <h2>5. Compartilhamento</h2>
+      <p>
+        A extensão <strong>não vende</strong> dados dos usuários e <strong>não compartilha</strong> dados com
+        terceiros além dos provedores de IA selecionados por você, quando o preenchimento com IA é acionado.
+      </p>
+
+      <h2>6. Cookies e rastreamento</h2>
+      <p>
+        A extensão não cria cookies próprios. No entanto, as páginas que você visita e os provedores de IA
+        podem usar cookies e rastreadores segundo suas próprias políticas.
+      </p>
+
+      <h2>7. Segurança</h2>
+      <p>
+        Adotamos o princípio de <strong>minimização de dados</strong> no prompt enviado aos provedores de IA e
+        utilizamos as APIs oficiais (HTTPS). Recomendamos manter seu navegador e a extensão atualizados.
+      </p>
+
+      <h2>8. Seus controles</h2>
+      <ul>
+        <li>Você pode <strong>habilitar/desabilitar</strong> e <strong>alterar</strong> o provedor de IA em <em>Opções</em>.</li>
+        <li>Você pode <strong>editar/remover</strong> suas chaves de API a qualquer momento.</li>
+        <li>Você pode <strong>evitar o envio</strong> para IA não acionando o preenchimento inteligente.</li>
+        <li>Campos com valor já preenchido <strong>não serão sobrescritos</strong> pela extensão.</li>
+      </ul>
+
+      <h2>9. Contato</h2>
+      <p>
+        Para dúvidas, sugestões ou solicitações relacionadas à privacidade, atualize este arquivo com seu
+        canal de contato preferido (por exemplo, e-mail ou site).
+      </p>
+
+      <h2>10. Alterações nesta política</h2>
+      <p>
+        Podemos atualizar esta Política de Privacidade periodicamente. Alterações relevantes serão publicadas
+        nesta página. Recomendamos revisar esta política de tempos em tempos.
+      </p>
+
+      <footer>
+        © 2025 — NZR IA Autofill. Todos os direitos reservados.
+      </footer>
+    </div>
+  </body>
+</html>

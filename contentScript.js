@@ -380,6 +380,27 @@
         const tag = el.tagName.toLowerCase();
         const type = (el.getAttribute('type') || '').toLowerCase();
   
+        // Do NOT alter if already filled
+        if (tag === 'select') {
+          if (el.value) continue;
+        } else if (tag === 'input') {
+          if (type === 'checkbox') {
+            if (el.checked) continue;
+          } else if (type === 'radio') {
+            const groupName = el.name;
+            if (groupName) {
+              const group = [...document.querySelectorAll(`input[type="radio"][name="${CSS.escape(groupName)}"]`)];
+              if (group.some(r => r.checked)) continue;
+            } else if (el.checked) {
+              continue;
+            }
+          } else {
+            if ((el.value || '').trim() !== '') continue;
+          }
+        } else if (tag === 'textarea') {
+          if ((el.value || '').trim() !== '') continue;
+        }
+  
         if (tag === 'select') {
           // Try to set by value or by visible text
           const byValue = [...el.options].find(o => o.value === s.value);
@@ -438,6 +459,86 @@
         total += applySuggestions(suggestions);
       });
       return total;
+    }
+
+    function buildFieldFromElement(el) {
+      const tag = el.tagName.toLowerCase();
+      const type = (el.getAttribute('type') || '').toLowerCase();
+      const id = el.id || '';
+      const name = el.name || '';
+      const label = getLabel(el);
+      const placeholder = el.getAttribute('placeholder') || '';
+      const ariaLabel = el.getAttribute('aria-label') || '';
+      const fieldKeyBase = [id, name, label, tag, type].filter(Boolean).join('|') || Math.random().toString(36).slice(2);
+      const fieldId = 'fld_' + hash(fieldKeyBase);
+      try { el.dataset.caiFieldId = fieldId; } catch (_) {}
+      let options = undefined;
+      if (tag === 'select') {
+        options = [...el.options].map(o => ({ value: o.value, text: o.text }));
+      }
+      const field = {
+        fieldId, tag, type, id, name, label, placeholder, ariaLabel,
+        contextBefore: getContextText(el, 200),
+        contextAfter: '',
+        options
+      };
+      FIELDS_BY_ID.set(fieldId, field);
+      if (id) INDEX_BY_ID.set(id, fieldId);
+      if (name) {
+        const arr = INDEX_BY_NAME.get(name) || [];
+        arr.push(fieldId);
+        INDEX_BY_NAME.set(name, arr);
+      }
+      return field;
+    }
+
+    async function runAutofillFocused() {
+      const el = document.activeElement;
+      if (!el) return { ok: false, error: 'Nenhum elemento em foco', filled: 0 };
+      const tag = el.tagName ? el.tagName.toLowerCase() : '';
+      const type = (el.getAttribute && el.getAttribute('type')) ? el.getAttribute('type').toLowerCase() : '';
+
+      // Only inputs we handle and not excluded types
+      if (!['input', 'textarea', 'select'].includes(tag)) return { ok: false, error: 'Elemento não suportado', filled: 0 };
+      if (tag === 'input' && EXCLUDED_TYPES.has(type)) return { ok: false, error: 'Tipo de input não suportado', filled: 0 };
+
+      // Do NOT alter if already filled
+      if (tag === 'select' && el.value) return { ok: true, filled: 0 };
+      if (tag === 'textarea' && (el.value || '').trim() !== '') return { ok: true, filled: 0 };
+      if (tag === 'input') {
+        if (type === 'checkbox') {
+          if (el.checked) return { ok: true, filled: 0 };
+        } else if (type === 'radio') {
+          const groupName = el.name;
+          if (groupName) {
+            const group = [...document.querySelectorAll(`input[type="radio"][name="${CSS.escape(groupName)}"]`)];
+            if (group.some(r => r.checked)) return { ok: true, filled: 0 };
+          } else if (el.checked) {
+            return { ok: true, filled: 0 };
+          }
+        } else if ((el.value || '').trim() !== '') {
+          return { ok: true, filled: 0 };
+        }
+      }
+
+      showLoadingOverlay('Preenchendo este campo...');
+      try {
+        // Reset minimal registries for this run
+        try { FIELDS_BY_ID.clear(); } catch (_) {}
+        try { INDEX_BY_ID.clear(); } catch (_) {}
+        try { INDEX_BY_NAME.clear(); } catch (_) {}
+
+        const field = buildFieldFromElement(el);
+        const page = getPageContext();
+        const resp = await new Promise((resolve) => {
+          chrome.runtime.sendMessage({ type: 'AI_SUGGEST', fields: [field], page }, (r) => resolve(r));
+        });
+        if (!resp || !resp.ok) return { ok: false, error: resp && resp.error ? resp.error : 'Falha na IA', filled: 0 };
+        const count = applySuggestions(resp.suggestions);
+        return { ok: true, filled: count };
+      } finally {
+        hideLoadingOverlay();
+      }
     }
   
     function coerceNumberInRange(n, min, max, step) {
@@ -670,6 +771,13 @@
       if (msg && msg.type === 'POPUP_AUTOFILL') {
         (async () => {
           const r = await runAutofill();
+          sendResponse(r);
+        })();
+        return true;
+      }
+      if (msg && msg.type === 'AUTOFILL_FOCUSED') {
+        (async () => {
+          const r = await runAutofillFocused();
           sendResponse(r);
         })();
         return true;
