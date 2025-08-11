@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Configurações - Autofill com IA</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 20px; color: #111827; }
+      h1 { font-size: 20px; }
+      fieldset { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+      label { display: block; margin: 8px 0 4px; font-weight: 600; }
+      input, select { width: 420px; max-width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
+      .row { margin-top: 10px; }
+      button { padding: 10px 14px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
+      .ok { color: #059669; }
+      .err { color: #b91c1c; }
+    </style>
+  </head>
+  <body>
+    <h1>Configurações</h1>
+
+    <fieldset>
+      <legend><strong>Provedor</strong></legend>
+      <label>
+        <input type="radio" name="provider" value="openai"> OpenAI
+      </label>
+      <label>
+        <input type="radio" name="provider" value="gemini"> Gemini
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend><strong>OpenAI</strong></legend>
+      <label for="openaiKey">API Key</label>
+      <input id="openaiKey" type="password" placeholder="sk-..." />
+      <label for="openaiModel">Modelo</label>
+      <input id="openaiModel" type="text" value="gpt-4o-mini" />
+    </fieldset>
+
+    <fieldset>
+      <legend><strong>Gemini</strong></legend>
+      <label for="geminiKey">API Key</label>
+      <input id="geminiKey" type="password" placeholder="AIza..." />
+      <label for="geminiModel">Modelo</label>
+      <input id="geminiModel" type="text" value="gemini-1.5-flash" />
+    </fieldset>
+
+    <div class="row">
+      <button id="saveBtn">Salvar</button>
+      <span id="status" style="margin-left: 12px;"></span>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>

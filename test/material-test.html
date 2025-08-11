@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teste Material Design - Autofill com IA</title>
+    <meta name="description" content="Página de teste Material Design com abas, selects, radios, checkboxes e combobox ARIA." />
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+      body { padding: 24px; }
+      .section-card { padding: 16px; border-radius: 8px; background: #fafafa; }
+      .combobox { position: relative; }
+      .listbox { position: absolute; z-index: 1000; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 4px; max-height: 180px; overflow: auto; display: none; }
+      .listbox[aria-hidden="false"] { display: block; }
+      .listbox [role="option"] { padding: 8px 12px; cursor: pointer; }
+      .listbox [role="option"]:hover { background: #eee; }
+      .mt-16 { margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h4>Formulário de Teste (Material Design)</h4>
+      <p class="grey-text text-darken-1">Use a extensão para preencher automaticamente. Se estiver abrindo como file://, habilite "Permitir acesso a URLs de arquivos" na página da extensão.</p>
+
+      <div class="row">
+        <div class="col s12">
+          <ul class="tabs">
+            <li class="tab col s3"><a class="active" href="#dados">Dados</a></li>
+            <li class="tab col s3"><a href="#endereco">Endereço</a></li>
+            <li class="tab col s3"><a href="#preferencias">Preferências</a></li>
+          </ul>
+        </div>
+
+        <div id="dados" class="col s12 section-card">
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <input id="fullName2" name="fullName2" type="text" placeholder="Ex: João da Silva">
+              <label for="fullName2" class="active">Nome completo</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="email2" name="email2" type="email" placeholder="nome@exemplo.com">
+              <label for="email2" class="active">E-mail</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12 m4">
+              <input id="tel2" name="tel2" type="tel" placeholder="(11) 91234-5678">
+              <label for="tel2" class="active">Telefone</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <input id="birthdate" name="birthdate" type="date">
+              <label for="birthdate" class="active">Data de nascimento</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <input id="website" name="website" type="url" placeholder="https://exemplo.com">
+              <label for="website" class="active">Website</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12 m4">
+              <input id="age" name="age" type="number" min="0" max="120" step="1" placeholder="30">
+              <label for="age" class="active">Idade</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <input id="meeting" name="meeting" type="time">
+              <label for="meeting" class="active">Horário da reunião</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <textarea id="notes2" name="notes2" class="materialize-textarea" placeholder="Observações"></textarea>
+              <label for="notes2" class="active">Observações</label>
+            </div>
+          </div>
+        </div>
+
+        <div id="endereco" class="col s12 section-card">
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="address2" name="address2" type="text" placeholder="Rua Exemplo, 123">
+              <label for="address2" class="active">Endereço</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12 m4">
+              <input id="city2" name="city2" type="text" placeholder="São Paulo">
+              <label for="city2" class="active">Cidade</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <select id="state2" name="state2">
+                <option value="" selected>Selecione</option>
+                <option value="SP">São Paulo</option>
+                <option value="RJ">Rio de Janeiro</option>
+                <option value="MG">Minas Gerais</option>
+                <option value="RS">Rio Grande do Sul</option>
+              </select>
+              <label for="state2">Estado</label>
+            </div>
+            <div class="input-field col s12 m4">
+              <select id="country" name="country">
+                <option value="" selected>Selecione</option>
+                <option value="BR">Brasil</option>
+                <option value="AR">Argentina</option>
+                <option value="US">Estados Unidos</option>
+              </select>
+              <label for="country">País</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12">
+              <div class="combobox">
+                <label for="cityCombo" class="active">Cidade (Combobox ARIA)</label>
+                <input id="cityCombo" name="cityCombo" role="combobox" aria-controls="cityList" aria-expanded="false" aria-autocomplete="list" class="browser-default" placeholder="Selecione uma cidade" />
+                <ul id="cityList" role="listbox" class="listbox" aria-hidden="true">
+                  <li role="option" data-value="sao_paulo">São Paulo</li>
+                  <li role="option" data-value="rio">Rio de Janeiro</li>
+                  <li role="option" data-value="belo_horizonte">Belo Horizonte</li>
+                  <li role="option" data-value="porto_alegre">Porto Alegre</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="preferencias" class="col s12 section-card">
+          <div class="row">
+            <div class="col s12 m6">
+              <span class="grey-text text-darken-2">Receber novidades por e-mail?</span>
+              <p>
+                <label>
+                  <input type="radio" name="newsletter" value="sim" />
+                  <span>Sim</span>
+                </label>
+              </p>
+              <p>
+                <label>
+                  <input type="radio" name="newsletter" value="nao" />
+                  <span>Não</span>
+                </label>
+              </p>
+            </div>
+            <div class="col s12 m6">
+              <span class="grey-text text-darken-2">Interesses</span>
+              <p>
+                <label>
+                  <input type="checkbox" name="interesses" value="tecnologia" />
+                  <span>Tecnologia</span>
+                </label>
+              </p>
+              <p>
+                <label>
+                  <input type="checkbox" name="interesses" value="design" />
+                  <span>Design</span>
+                </label>
+              </p>
+              <p>
+                <label>
+                  <input type="checkbox" name="interesses" value="negocios" />
+                  <span>Negócios</span>
+                </label>
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12 m6">
+              <select id="plan" name="plan">
+                <option value="" selected>Selecione</option>
+                <option value="free">Gratuito</option>
+                <option value="pro">Profissional</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <label for="plan">Plano</label>
+            </div>
+            <div class="input-field col s12 m6">
+              <input id="referrer" name="referrer" type="text" placeholder="Como nos conheceu?">
+              <label for="referrer" class="active">Como nos conheceu?</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-16">
+        <button class="btn waves-effect waves-light" type="button" onclick="M.toast({html: 'Sem envio real'})">Enviar</button>
+      </div>
+    </div>
+
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        M.AutoInit();
+
+        // Simple ARIA combobox behavior for the test page
+        const cb = document.getElementById('cityCombo');
+        const list = document.getElementById('cityList');
+        function openList() { list.setAttribute('aria-hidden', 'false'); cb.setAttribute('aria-expanded', 'true'); }
+        function closeList() { list.setAttribute('aria-hidden', 'true'); cb.setAttribute('aria-expanded', 'false'); }
+        cb.addEventListener('focus', openList);
+        cb.addEventListener('click', openList);
+        cb.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' || e.key === 'Tab' || e.key === 'Enter') closeList();
+          if (e.key === 'ArrowDown') openList();
+        });
+        list.addEventListener('click', (e) => {
+          const opt = e.target.closest('[role="option"]');
+          if (!opt) return;
+          cb.value = opt.textContent.trim();
+          cb.dataset.value = opt.getAttribute('data-value') || '';
+          closeList();
+          cb.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        document.addEventListener('click', (e) => {
+          if (!list.contains(e.target) && e.target !== cb) closeList();
+        });
+      });
+    </script>
+  </body>
+</html>

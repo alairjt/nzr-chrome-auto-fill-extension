@@ -1,0 +1,4 @@
+{
+  "appName": { "message": "Context Autofill AI" },
+  "appDesc": { "message": "Autopreenche formulários com IA (OpenAI ou Gemini) com base no contexto da página." }
+}

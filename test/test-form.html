@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Formulário de Teste - Context Autofill AI</title>
+    <meta name="description" content="Página de exemplo para testar a extensão Context Autofill AI." />
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; color: #111827; }
+      h1 { font-size: 22px; margin-bottom: 16px; }
+      form { max-width: 680px; }
+      label { display: block; margin: 12px 0 6px; font-weight: 600; }
+      input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .hint { color: #6b7280; font-size: 12px; }
+      .card { border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; background: #f9fafb; margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <h1>Formulário de Teste</h1>
+    <p class="hint">Use a extensão para preencher automaticamente. Dica: configure suas chaves na página de Opções.</p>
+
+    <div class="card">
+      <h2>Dados Pessoais</h2>
+      <form id="testForm">
+        <label for="fullName">Nome completo</label>
+        <input id="fullName" name="fullName" type="text" placeholder="Ex: Maria Souza" />
+
+        <div class="row">
+          <div>
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" placeholder="nome@exemplo.com" />
+          </div>
+          <div>
+            <label for="phone">Telefone</label>
+            <input id="phone" name="phone" type="tel" placeholder="(11) 91234-5678" />
+          </div>
+        </div>
+
+        <label for="address">Endereço</label>
+        <input id="address" name="address" type="text" placeholder="Rua Exemplo, 123" />
+
+        <div class="row">
+          <div>
+            <label for="city">Cidade</label>
+            <input id="city" name="city" type="text" placeholder="São Paulo" />
+          </div>
+          <div>
+            <label for="state">Estado</label>
+            <select id="state" name="state">
+              <option value="">Selecione</option>
+              <option value="SP">São Paulo</option>
+              <option value="RJ">Rio de Janeiro</option>
+              <option value="MG">Minas Gerais</option>
+              <option value="RS">Rio Grande do Sul</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="notes">Observações</label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Informações adicionais"></textarea>
+
+        <div style="margin-top:12px;">
+          <button type="submit">Enviar</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
