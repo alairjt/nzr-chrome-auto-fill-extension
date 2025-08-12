@@ -6,12 +6,14 @@ const els = {
   geminiModel: document.getElementById('geminiModel'),
   saveBtn: document.getElementById('saveBtn'),
   status: document.getElementById('status'),
+  language: document.getElementById('language'),
 };
 
 async function load() {
-  const cfg = await chrome.storage.sync.get({ provider: 'openai', openaiModel: 'gpt-4o-mini', geminiModel: 'gemini-1.5-flash' });
+  const cfg = await chrome.storage.sync.get({ provider: 'openai', openaiModel: 'gpt-4o-mini', geminiModel: 'gemini-1.5-flash', language: 'pt' });
   els.openaiModel.value = cfg.openaiModel || 'gpt-4o-mini';
   els.geminiModel.value = cfg.geminiModel || 'gemini-1.5-flash';
+  if (els.language) els.language.value = cfg.language || 'pt';
 
   // Keys are not returned by default for privacy unless previously stored
   const keys = await chrome.storage.sync.get(['openaiApiKey', 'geminiApiKey']);
@@ -31,7 +33,8 @@ async function save() {
   const openaiModel = els.openaiModel.value.trim() || 'gpt-4o-mini';
   const geminiApiKey = els.geminiKey.value.trim();
   const geminiModel = els.geminiModel.value.trim() || 'gemini-1.5-flash';
-  await chrome.storage.sync.set({ provider, openaiApiKey, openaiModel, geminiApiKey, geminiModel });
+  const language = (els.language && els.language.value) ? els.language.value : 'pt';
+  await chrome.storage.sync.set({ provider, openaiApiKey, openaiModel, geminiApiKey, geminiModel, language });
   els.status.textContent = 'Salvo!';
   els.status.className = 'ok';
   setTimeout(() => { els.status.textContent = ''; els.status.className = ''; }, 2000);

@@ -9,6 +9,32 @@
     ]);
   
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // --- Language helpers (cached for sync usage) ---
+    let LANG_CACHE = 'pt';
+    let I18N_CACHE = makeI18n('pt');
+
+    function makeI18n(lang) {
+      const L = (lang === 'manezinho');
+      return {
+        overlayLoading: L ? 'Ô manezinho, tô catando as coisa e preenchendo...' : 'Preenchendo automaticamente...',
+        defaultInput: L ? 'Preenchido no capricho, tchê' : 'Preenchido automaticamente',
+        defaultTextarea: L ? 'Textinho maroto gerado na hora.' : 'Texto gerado automaticamente.',
+        errNoFocused: L ? 'Não tem nada em foco, ó' : 'Nenhum elemento em foco',
+        errElemUnsupported: L ? 'Esse troço aí não dá pra preencher' : 'Elemento não suportado',
+        errTypeUnsupported: L ? 'Esse tipo de campo não rola' : 'Tipo de input não suportado',
+        errDuringFill: L ? 'Deu ruim durante o preenchimento' : 'Erro durante preenchimento',
+        errAIFail: L ? 'Deu ruim na IA' : 'Falha na IA',
+      };
+    }
+
+    async function ensureLang() {
+      try {
+        const { language } = await chrome.storage.sync.get({ language: 'pt' });
+        LANG_CACHE = (language === 'manezinho') ? 'manezinho' : 'pt';
+        I18N_CACHE = makeI18n(LANG_CACHE);
+      } catch (_) { /* keep defaults */ }
+    }
   
     // Global registry of fields collected, keyed by fieldId, to allow
     // remount-safe targeting across tab systems that unmount inactive content (e.g., Radix Tabs)
@@ -493,14 +519,15 @@
     }
 
     async function runAutofillFocused() {
+      await ensureLang();
       const el = document.activeElement;
-      if (!el) return { ok: false, error: 'Nenhum elemento em foco', filled: 0 };
+      if (!el) return { ok: false, error: I18N_CACHE.errNoFocused, filled: 0 };
       const tag = el.tagName ? el.tagName.toLowerCase() : '';
       const type = (el.getAttribute && el.getAttribute('type')) ? el.getAttribute('type').toLowerCase() : '';
-
+  
       // Only inputs we handle and not excluded types
-      if (!['input', 'textarea', 'select'].includes(tag)) return { ok: false, error: 'Elemento não suportado', filled: 0 };
-      if (tag === 'input' && EXCLUDED_TYPES.has(type)) return { ok: false, error: 'Tipo de input não suportado', filled: 0 };
+      if (!['input', 'textarea', 'select'].includes(tag)) return { ok: false, error: I18N_CACHE.errElemUnsupported, filled: 0 };
+      if (tag === 'input' && EXCLUDED_TYPES.has(type)) return { ok: false, error: I18N_CACHE.errTypeUnsupported, filled: 0 };
 
       // Do NOT alter if already filled
       if (tag === 'select' && el.value) return { ok: true, filled: 0 };
@@ -521,7 +548,7 @@
         }
       }
 
-      showLoadingOverlay('Preenchendo este campo...');
+      showLoadingOverlay(I18N_CACHE.overlayLoading);
       try {
         // Reset minimal registries for this run
         try { FIELDS_BY_ID.clear(); } catch (_) {}
@@ -533,7 +560,7 @@
         const resp = await new Promise((resolve) => {
           chrome.runtime.sendMessage({ type: 'AI_SUGGEST', fields: [field], page }, (r) => resolve(r));
         });
-        if (!resp || !resp.ok) return { ok: false, error: resp && resp.error ? resp.error : 'Falha na IA', filled: 0 };
+        if (!resp || !resp.ok) return { ok: false, error: resp && resp.error ? resp.error : I18N_CACHE.errAIFail, filled: 0 };
         const count = applySuggestions(resp.suggestions);
         return { ok: true, filled: count };
       } finally {
@@ -683,7 +710,7 @@
           // default text-like input
           if (!el.value) {
             const ph = el.getAttribute('placeholder') || '';
-            setNativeValue(el, ph || 'Preenchido automaticamente');
+            setNativeValue(el, ph || I18N_CACHE.defaultInput);
             fireInputEvents(el, { input: true, change: true });
             filled++;
           }
@@ -694,7 +721,7 @@
         if (tag === 'textarea') {
           if (!el.value) {
             const ph = el.getAttribute('placeholder') || '';
-            setNativeValue(el, ph || 'Texto gerado automaticamente.');
+            setNativeValue(el, ph || I18N_CACHE.defaultTextarea);
             fireInputEvents(el, { input: true, change: true });
             filled++;
           }
@@ -716,7 +743,8 @@
     }
   
     async function runAutofill() {
-      showLoadingOverlay('Preenchendo automaticamente...');
+      await ensureLang();
+      showLoadingOverlay(I18N_CACHE.overlayLoading);
       try {
         // Reset field registry per run to avoid stale mappings
         try { FIELDS_BY_ID.clear(); } catch (_) {}
@@ -763,7 +791,7 @@
         const hasTabs = !!document.querySelector('[role="tab"], ul.tabs li a[href^="#"]');
         const def = hasTabs ? await fillMissingAndDefaultsAcrossTabs() : fillMissingAndDefaults();
         hideLoadingOverlay();
-        return { ok: false, error: (e && e.message) ? e.message : 'Erro durante preenchimento', filled: def };
+        return { ok: false, error: (e && e.message) ? e.message : I18N_CACHE.errDuringFill, filled: def };
       }
     }
   

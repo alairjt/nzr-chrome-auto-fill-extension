@@ -10,11 +10,10 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage", "scripting", "activeTab", "tabs", "contextMenus"],
+  "permissions": ["storage", "scripting", "activeTab", "contextMenus"],
   "host_permissions": [
     "https://api.openai.com/*",
-    "https://generativelanguage.googleapis.com/*",
-    "<all_urls>"
+    "https://generativelanguage.googleapis.com/*"
   ],
   "options_page": "options.html",
   "action": {
@@ -37,12 +36,5 @@
       },
       "description": "Executa o preenchimento automático nesta aba"
     }
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["contentScript.js"],
-      "run_at": "document_idle"
-    }
-  ]
+  }
 }
