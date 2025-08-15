@@ -5,52 +5,440 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Configurações - NZR DevTool</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 20px; color: #111827; }
-      h1 { font-size: 20px; }
-      fieldset { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-      label { display: block; margin: 8px 0 4px; font-weight: 600; }
-      input, select { width: 420px; max-width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; }
-      .row { margin-top: 10px; }
-      button { padding: 10px 14px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
-      .ok { color: #059669; }
-      .err { color: #b91c1c; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        position: relative;
+        overflow-x: hidden;
+        padding: 0;
+      }
+      
+      /* Background decoration */
+      body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      
+      .header {
+        text-align: center;
+        animation: slideInDown 0.6s ease;
+      }
+      
+      .header img {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        margin-bottom: 16px;
+      }
+      
+      .header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(45deg, #ffffff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+      }
+      
+      .header p {
+        font-size: 16px;
+        opacity: 0.9;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      .settings-grid {
+        display: grid;
+        gap: 24px;
+        flex: 1;
+      }
+      
+      .setting-card {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 32px;
+        backdrop-filter: blur(20px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.6s ease;
+      }
+      
+      .setting-card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      
+      .setting-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.6s ease;
+      }
+      
+      .setting-card:hover::before {
+        left: 100%;
+      }
+      
+      .setting-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .card-icon {
+        font-size: 28px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+      }
+      
+      .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .card-description {
+        font-size: 14px;
+        opacity: 0.9;
+        line-height: 1.5;
+        margin-bottom: 24px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      
+      .form-input,
+      .form-select {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+      
+      .form-input:focus,
+      .form-select:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+      }
+      
+      .form-input:disabled,
+      .form-select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .form-select option {
+        background: #374151;
+        color: white;
+      }
+      
+      .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+      }
+      
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      
+      .checkbox-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(4px);
+      }
+      
+      .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #10b981;
+        cursor: pointer;
+      }
+      
+      .checkbox-item label {
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        flex: 1;
+      }
+      
+      .actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-top: 24px;
+        animation: slideInUp 0.6s ease 0.3s both;
+      }
+      
+      .btn-primary {
+        padding: 14px 32px;
+        background: linear-gradient(45deg, #10b981, #059669);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+      }
+      
+      .btn-primary:hover::before {
+        left: 100%;
+      }
+      
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+      }
+      
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      }
+      
+      .status-message {
+        font-size: 14px;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .status-message.show {
+        opacity: 1;
+      }
+      
+      .status-message.success {
+        color: #10b981;
+      }
+      
+      .status-message.error {
+        color: #ef4444;
+      }
+      
+      .footer {
+        text-align: center;
+        padding-top: 32px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        animation: slideInUp 0.6s ease 0.4s both;
+      }
+      
+      .footer a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+      }
+      
+      .footer a:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+      }
+      
+      @keyframes slideInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @media (max-width: 768px) {
+        .container {
+          padding: 24px 16px;
+        }
+        
+        .setting-card {
+          padding: 24px;
+        }
+        
+        .checkbox-group {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Configurações</h1>
-
-    <fieldset>
-      <legend><strong>Idioma</strong></legend>
-      <label for="language">Escolha o idioma da interface</label>
-      <select id="language" disabled>
-        <option value="pt">Português (padrão)</option>
-      </select>
-    </fieldset>
-
-    <fieldset>
-      <legend><strong>Dados visíveis no Painel</strong></legend>
-      <div id="dataTypes">
-        <label><input type="checkbox" value="nome" checked> Nome Completo</label>
-        <label><input type="checkbox" value="email" checked> E-mail</label>
-        <label><input type="checkbox" value="cpf" checked> CPF</label>
-        <label><input type="checkbox" value="cnpj" checked> CNPJ</label>
-        <label><input type="checkbox" value="telefone" checked> Telefone</label>
-        <label><input type="checkbox" value="uuid" checked> UUID v4</label>
+    <div class="container">
+      <div class="header">
+        <img src="icons/logo.jpeg" alt="NZR DevTool logo" />
+        <h1>Configurações</h1>
+        <p>Personalize sua experiência com o NZR DevTool</p>
       </div>
-      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
-        Selecione quais tipos serão exibidos no painel lateral. Por padrão, todos são exibidos.
+      
+      <div class="settings-grid">
+        <div class="setting-card">
+          <div class="card-header">
+            <span class="card-icon">🌍</span>
+            <div class="card-title">Idioma da Interface</div>
+          </div>
+          <div class="card-description">
+            Escolha o idioma preferido para a interface da extensão
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="language">Idioma</label>
+            <select id="language" class="form-select" disabled>
+              <option value="pt">Português (padrão)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-card">
+          <div class="card-header">
+            <span class="card-icon">📊</span>
+            <div class="card-title">Dados Visíveis no Painel</div>
+          </div>
+          <div class="card-description">
+            Selecione quais tipos de dados serão exibidos no painel lateral. Você pode ativar ou desativar cada tipo conforme sua necessidade.
+          </div>
+          <div id="dataTypes" class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" value="nome" id="checkbox-nome" checked>
+              <label for="checkbox-nome">👤 Nome Completo</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" value="email" id="checkbox-email" checked>
+              <label for="checkbox-email">📧 E-mail</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" value="cpf" id="checkbox-cpf" checked>
+              <label for="checkbox-cpf">🆔 CPF</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" value="cnpj" id="checkbox-cnpj" checked>
+              <label for="checkbox-cnpj">🏢 CNPJ</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" value="telefone" id="checkbox-telefone" checked>
+              <label for="checkbox-telefone">📱 Telefone</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" value="uuid" id="checkbox-uuid" checked>
+              <label for="checkbox-uuid">🔑 UUID v4</label>
+            </div>
+          </div>
+        </div>
       </div>
-    </fieldset>
-
-    <div class="row">
-      <button id="saveBtn">Salvar</button>
-      <span id="status" style="margin-left: 12px;"></span>
+      
+      <div class="actions">
+        <button id="saveBtn" class="btn-primary">
+          💾 Salvar Configurações
+        </button>
+        <div id="status" class="status-message"></div>
+      </div>
+      
+      <div class="footer">
+        <a href="privacy.html" target="_blank" rel="noopener noreferrer">
+          🔐 Política de Privacidade
+        </a>
+      </div>
     </div>
-
-    <div class="row" style="margin-top:20px; font-size:12px; color:#6b7280;">
-      <a href="privacy.html" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>
-    </div>
-
+    
     <script src="options.js"></script>
   </body>
 </html>

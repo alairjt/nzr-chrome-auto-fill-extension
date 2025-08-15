@@ -5,31 +5,295 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NZR DevTool</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 12px; width: 300px; }
-      h1 { font-size: 16px; margin: 0 0 10px; }
-      button { width: 100%; padding: 10px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-weight: 600; cursor: pointer; }
-      button:disabled { opacity: .6; cursor: default; }
-      .row { margin-top: 8px; font-size: 12px; color: #374151; }
-      .ok { color: #059669; }
-      .err { color: #b91c1c; }
-      a { color: #2563eb; text-decoration: none; }
-      .brand { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-      .brand img { width: 20px; height: 20px; border-radius: 4px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        width: 380px;
+        min-height: 460px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      /* Background decoration */
+      body::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+        pointer-events: none;
+      }
+      
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      .popup-container {
+        position: relative;
+        z-index: 1;
+        padding: 24px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        animation: slideInDown 0.6s ease;
+      }
+      
+      .brand img {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      
+      .brand h1 {
+        font-size: 20px;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(45deg, #ffffff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex: 1;
+      }
+      
+      .action-card {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.6s ease;
+      }
+      
+      .action-card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      
+      .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.6s ease;
+      }
+      
+      .action-card:hover::before {
+        left: 100%;
+      }
+      
+      .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      .action-card:active {
+        transform: translateY(-2px);
+        transition: transform 0.1s ease;
+      }
+      
+      .card-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        display: block;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+      }
+      
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      
+      .card-description {
+        font-size: 13px;
+        opacity: 0.9;
+        line-height: 1.4;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      
+      .shortcut-info {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        animation: slideInUp 0.6s ease 0.2s both;
+      }
+      
+      .shortcut-info .label {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 4px;
+      }
+      
+      .shortcut-info .key {
+        font-size: 14px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+      }
+      
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: slideInUp 0.6s ease 0.3s both;
+      }
+      
+      .footer a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+      }
+      
+      .footer a:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+      }
+      
+      #status {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      
+      #status.show {
+        opacity: 1;
+      }
+      
+      .ok {
+        background: rgba(16, 185, 129, 0.2) !important;
+        border-color: rgba(16, 185, 129, 0.3) !important;
+        color: #10b981 !important;
+      }
+      
+      .err {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+        color: #ef4444 !important;
+      }
+      
+      @keyframes slideInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="brand">
-      <img src="icons/logo.jpeg" alt="NZR DevTool logo" />
-      <h1>NZR DevTool</h1>
+    <div class="popup-container">
+      <div class="brand">
+        <img src="icons/logo.jpeg" alt="NZR DevTool logo" />
+        <h1>NZR DevTool</h1>
+      </div>
+      
+      <div class="actions">
+        <div class="action-card" id="dataPanelBtn">
+          <span class="card-icon">📊</span>
+          <div class="card-title">Painel de Dados</div>
+          <div class="card-description">Gere dados fictícios para preenchimento automático de formulários</div>
+        </div>
+        
+        <div class="action-card" id="screenAnnotatorBtn">
+          <span class="card-icon">✏️</span>
+          <div class="card-title">Anotar e Capturar Tela</div>
+          <div class="card-description">Faça anotações, desenhe e capture screenshots da página atual</div>
+        </div>
+      </div>
+      
+      <div class="shortcut-info">
+        <div class="label">Atalhos rápidos</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; opacity: 0.9;">Painel de Dados:</span>
+            <span class="key">Alt + Shift + D</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; opacity: 0.9;">Anotar e Capturar:</span>
+            <span class="key">Alt + Shift + N</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <a href="#" id="openOptionsLink">⚙️ Configurações</a>
+      </div>
     </div>
-    <button id="dataPanelBtn" style="background: #2563eb; margin-bottom: 12px;">Painel de Dados</button>
-    <div class="row" style="margin-top: 6px; color: #6b7280;">
-      Atalho: <strong>Alt + Shift + D</strong>
-    </div>
-    <div id="status" class="row"></div>
-    <div class="row" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-      <a id="openOptionsLink" href="#">Abrir configurações</a>
-    </div>
+    
+    <div id="status"></div>
     <script src="popup.js"></script>
   </body>
 </html>

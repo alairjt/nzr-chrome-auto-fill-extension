@@ -19,17 +19,55 @@ async function load() {
 }
 
 async function save() {
-  const language = (els.language && els.language.value) ? els.language.value : 'pt';
-  const types = [];
-  if (els.dataTypes) {
-    els.dataTypes.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-      if (chk.checked) types.push(chk.value);
-    });
+  try {
+    // Add loading state to button
+    els.saveBtn.disabled = true;
+    els.saveBtn.textContent = '⏳ Salvando...';
+    
+    const language = (els.language && els.language.value) ? els.language.value : 'pt';
+    const types = [];
+    if (els.dataTypes) {
+      els.dataTypes.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+        if (chk.checked) types.push(chk.value);
+      });
+    }
+    
+    await chrome.storage.sync.set({ language, dataPanelTypes: types });
+    
+    // Show success message
+    els.status.textContent = '✅ Configurações salvas com sucesso!';
+    els.status.className = 'status-message success show';
+    
+    // Reset button
+    els.saveBtn.textContent = '💾 Salvar Configurações';
+    els.saveBtn.disabled = false;
+    
+    // Clear message after 3 seconds
+    setTimeout(() => { 
+      els.status.classList.remove('show');
+      setTimeout(() => {
+        els.status.textContent = '';
+        els.status.className = 'status-message';
+      }, 300);
+    }, 3000);
+  } catch (error) {
+    // Show error message
+    els.status.textContent = '❌ Erro ao salvar configurações';
+    els.status.className = 'status-message error show';
+    
+    // Reset button
+    els.saveBtn.textContent = '💾 Salvar Configurações';
+    els.saveBtn.disabled = false;
+    
+    // Clear error after 4 seconds
+    setTimeout(() => { 
+      els.status.classList.remove('show');
+      setTimeout(() => {
+        els.status.textContent = '';
+        els.status.className = 'status-message';
+      }, 300);
+    }, 4000);
   }
-  await chrome.storage.sync.set({ language, dataPanelTypes: types });
-  els.status.textContent = 'Salvo!';
-  els.status.className = 'ok';
-  setTimeout(() => { els.status.textContent = ''; els.status.className = ''; }, 2000);
 }
 
 els.saveBtn.addEventListener('click', save);
