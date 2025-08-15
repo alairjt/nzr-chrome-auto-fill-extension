@@ -2,88 +2,71 @@
 
 Preenche automaticamente campos de formulários usando IA (OpenAI ou Gemini) com base no contexto da página. Manifest V3, com service worker, content script, popup e página de opções.
 
-## Funcionalidades
-- Detecta campos (`input`, `textarea`, `select`) e extrai rótulos/placeholder/contexto.
-- Gera sugestões via OpenAI ou Gemini.
-- Preenche os campos de forma segura (dispara `input`/`change`).
-- Popup para executar com 1 clique e atalho de teclado.
-- Página de opções para configurar chaves e modelos.
+## Novidades da v0.2.1
+- **Internacionalização (i18n):** Adicionado suporte ao dialeto "Manezinho" (pt-BR-sc), aplicado na UI e nas requisições à IA.
+- **Preenchimento Focado:** Novo item no menu de contexto (clique direito) para preencher apenas o campo focado.
+- **Build Simplificado:** Script `build-zip.sh` para empacotar a extensão em um arquivo ZIP versionado.
+- **Melhorias Gerais:** O preenchimento agora ignora campos já preenchidos e a cópia de valores está mais confiável.
 
-### Cobertura de preenchimento
-- Textos, e-mail, telefone, URL, números, datas e horários.
-- Selects: tentamos casar por `value` ou texto; se faltar sugestão, selecionamos a primeira opção válida.
-- Checkboxes e Radios: suportados (marcamos grupo com heurística quando não houver sugestão).
-- ARIA Combobox: tentamos abrir e selecionar o primeiro item automaticamente.
-- Abas: detectamos e navegamos por abas (ARIA `role="tab"` – inclui Radix UI – e Materialize) antes de coletar os campos para garantir o preenchimento em todas as seções.
+## Funcionalidades
+- **Preenchimento Inteligente:** Detecta campos (`input`, `textarea`, `select`) e extrai rótulos, placeholders e contexto para gerar sugestões via OpenAI ou Gemini.
+- **Ampla Cobertura de Campos:** Suporte para textos, e-mails, datas, selects, checkboxes, radios e combobox ARIA.
+- **Navegação Automática:** Detecta e navega por abas (Tabs) para garantir o preenchimento de formulários multi-etapas.
+- **Múltiplas Formas de Uso:**
+  - **Popup:** Execute com 1 clique no ícone da extensão.
+  - **Atalho de Teclado:** `Alt+Shift+D`.
+  - **Menu de Contexto:** Clique com o botão direito em um campo para preenchê-lo individualmente.
+- **Configuração Flexível:** Página de opções para configurar provedor de IA (OpenAI/Gemini), chave de API e modelo.
+- **Ignora Campos Preenchidos:** Para evitar sobreescrever dados, a extensão não altera campos que já possuem valor.
 
 ## Arquitetura
-- `manifest.json`: configuração MV3 e permissões.
-- `background.js`: service worker; chama provedores IA e interpreta respostas.
-- `contentScript.js`: coleta campos/contexto e aplica sugestões.
-- `popup.html`/`popup.js`: UI de execução rápida.
-- `options.html`/`options.js`: configuração de provedor, chave e modelo.
-- `_locales/pt_BR/messages.json`: i18n básico (nome/descrição).
-
-## Permissões
-- `storage`: salvar configurações e chaves.
-- `activeTab`/`tabs`: interagir com a aba ativa e enviar mensagens.
-- `host_permissions`: acesso às APIs da OpenAI e Gemini; `<all_urls>` para analisar qualquer página.
+- `manifest.json`: Configuração MV3, permissões e atalhos.
+- `background.js`: Service worker que gerencia a comunicação com as APIs de IA.
+- `contentScript.js`: Injetado nas páginas para coletar campos, extrair contexto e aplicar as sugestões recebidas.
+- `popup.html`/`js`: Interface de usuário para acionamento rápido.
+- `options.html`/`js`: Página de configurações da extensão.
+- `_locales/`: Diretório para internacionalização (i18n).
 
 ## Instalação (modo desenvolvedor)
-1. Acesse chrome://extensions e habilite "Modo do desenvolvedor".
-2. Clique em "Carregar sem compactação" e selecione esta pasta.
-3. Opcional: ative "Permitir acesso a URLs de arquivos" para testar em arquivos locais.
-
-## Configuração de IA
-1. Abra o popup ou clique em "Detalhes" > "Opções" da extensão.
-2. Escolha o provedor (OpenAI ou Gemini).
-3. Informe a API Key e ajuste o modelo se desejar.
-
-Observações:
-- OpenAI: endpoint Chat Completions. Modelo padrão: `gpt-4o-mini`.
-- Gemini: endpoint `generateContent`. Modelo padrão: `gemini-1.5-flash`.
+1. Acesse `chrome://extensions` e habilite o "Modo do desenvolvedor".
+2. Clique em "Carregar sem compactação" e selecione a pasta do projeto.
+3. Opcional: Na página de detalhes da extensão, ative "Permitir acesso a URLs de arquivos" para testar em arquivos locais (`file://`).
 
 ## Uso
-- Abra uma página com formulário (ou o arquivo `test/test-form.html`).
-- Clique no ícone da extensão e depois em "Preencher agora".
-- Atalho de teclado: `Ctrl+Shift+Y` (Windows/Linux) ou `Command+Shift+Y` (macOS).
+1. **Configure a IA:** Abra as opções da extensão, escolha o provedor (OpenAI ou Gemini), insira sua chave de API e salve.
+2. **Abra um formulário:** Navegue até uma página com um formulário.
+3. **Preencha:**
+   - **Tudo:** Clique no ícone da extensão e em "Preencher Agora" ou use o atalho `Alt+Shift+D`.
+   - **Apenas um campo:** Clique com o botão direito no campo desejado e selecione "Preencher campo (NZR DevTool)".
 
-## Política de Privacidade
-- Consulte `privacy.html` nesta pasta para a Política de Privacidade completa.
-- Para a Chrome Web Store, hospede este arquivo (ex.: GitHub Pages) e informe a URL pública.
+## Empacotamento para Distribuição
+Para criar um arquivo `.zip` para upload na Chrome Web Store, execute o script:
 
-## Teste local com página de exemplo
-Há três páginas de teste:
-- Básica: `test/test-form.html`.
-- Material Design (com abas, combobox ARIA, radios, checkboxes e mais selects): `test/material-test.html`.
-- Radix UI Tabs (React + ESM): `test/radix-tabs-test.html`.
+```bash
+./build-zip.sh
+```
 
-Opção A (file://):
-- Ative "Permitir acesso a URLs de arquivos" para esta extensão em chrome://extensions.
-- Abra `test/test-form.html` no navegador e use a extensão.
-- Observação: a página `radix-tabs-test.html` usa módulos ESM (React/Radix via CDN) e pode não funcionar por `file://`. Prefira a Opção B (servidor) para este caso.
+O arquivo será salvo na pasta `dist/` com o nome `nzr-devtool-vX.X.X.zip`, baseado na versão do `manifest.json`.
 
-Opção B (servidor local):
-- Com Python instalado, rode na pasta `test/`:
-  ```bash
-  python3 -m http.server 5173
-  ```
-- Abra:
-  - http://localhost:5173/test-form.html
-  - http://localhost:5173/material-test.html
-  - http://localhost:5173/radix-tabs-test.html
-  e use a extensão.
+## Teste Local
+As páginas de teste estão na pasta `test/`. Para executá-las, especialmente as que usam módulos (React/Radix), é recomendado um servidor local:
 
-## Limitações e considerações
-- A IA pode não acertar 100% em campos ambíguos; a lógica evita inventar dados sensíveis.
-- Campos de senha e arquivo são ignorados por segurança. Outros campos têm heurísticas de fallback (ex.: primeira opção de select, marcar primeiro radio/checkbox).
-- Para selects, tentamos casar por `value` ou texto visível; se falhar, escolhemos a primeira opção válida.
+```bash
+# Navegue até a pasta raiz do projeto
+python3 -m http.server 5173
+```
+
+Abra `http://localhost:5173/test/` e escolha uma das páginas de exemplo.
+
+## Limitações
+- A IA pode não ser 100% precisa em campos ambíguos.
+- Campos de senha e arquivo são ignorados por segurança.
+- Heurísticas de fallback são usadas quando a IA não fornece um valor claro (ex: selecionar a primeira opção de um `select`).
 
 ## Roadmap
 - Aprendizado incremental com feedback do usuário.
-- Suporte a perfis (dados pessoais corporativos x pessoais).
-- Melhoria de extração de contexto por campo (antes/depois específicos).
-- Internacionalização adicional (en-US).
+- Suporte a perfis (dados pessoais x corporativos).
+- Melhoria na extração de contexto por campo.
 
 ## Licença
 MIT
