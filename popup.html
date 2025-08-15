@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NZR IA Autofill</title>
+    <title>NZR DevTool</title>
     <style>
       body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 12px; width: 300px; }
       h1 { font-size: 16px; margin: 0 0 10px; }
@@ -19,12 +19,17 @@
   </head>
   <body>
     <div class="brand">
-      <img src="icons/logo.jpeg" alt="NZR IA Autofill logo" />
-      <h1>NZR IA Autofill</h1>
+      <img src="icons/logo.jpeg" alt="NZR DevTool logo" />
+      <h1>NZR DevTool</h1>
     </div>
-    <button id="autofillBtn">Preencher agora</button>
+    <button id="dataPanelBtn" style="background: #2563eb; margin-bottom: 12px;">Painel de Dados</button>
+    <div class="row" style="margin-top: 6px; color: #6b7280;">
+      Atalho: <strong>Alt + Shift + D</strong>
+    </div>
     <div id="status" class="row"></div>
-    <div class="row"><a href="#" id="openOptions">Configurar provedores</a></div>
+    <div class="row" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <a id="openOptionsLink" href="#">Abrir configurações</a>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>

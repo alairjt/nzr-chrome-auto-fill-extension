@@ -1,23 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "__MSG_appName__",
-  "version": "0.1.1",
+  "name": "NZR DevTool",
+  "version": "0.2.0",
+  "version_name": "0.2.0",
   "default_locale": "pt_BR",
-  "description": "__MSG_appDesc__",
+  "description": "Geração de dados para formulários.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage", "scripting", "activeTab", "contextMenus"],
-  "host_permissions": [
-    "https://api.openai.com/*",
-    "https://generativelanguage.googleapis.com/*"
-  ],
+  "permissions": ["storage", "scripting", "activeTab", "contextMenus", "clipboardWrite"],
+  
   "options_page": "options.html",
   "action": {
-    "default_title": "NZR IA Autofill",
+    "default_title": "NZR DevTool",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"
@@ -29,12 +27,12 @@
     "type": "module"
   },
   "commands": {
-    "autofill-now": {
+    "toggle-data-panel": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
+        "default": "Alt+Shift+D",
+        "mac": "Alt+Shift+D"
       },
-      "description": "Executa o preenchimento automático nesta aba"
+      "description": "Alterna o painel de geração de dados"
     }
   }
 }

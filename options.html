@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Configurações - NZR IA Autofill</title>
+    <title>Configurações - NZR DevTool</title>
     <style>
       body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 20px; color: #111827; }
       h1 { font-size: 20px; }
@@ -22,36 +22,24 @@
     <fieldset>
       <legend><strong>Idioma</strong></legend>
       <label for="language">Escolha o idioma da interface</label>
-      <select id="language">
+      <select id="language" disabled>
         <option value="pt">Português (padrão)</option>
-        <option value="manezinho">Manezinho (Floripa) 😄</option>
       </select>
     </fieldset>
 
     <fieldset>
-      <legend><strong>Provedor</strong></legend>
-      <label>
-        <input type="radio" name="provider" value="openai"> OpenAI
-      </label>
-      <label>
-        <input type="radio" name="provider" value="gemini"> Gemini
-      </label>
-    </fieldset>
-
-    <fieldset>
-      <legend><strong>OpenAI</strong></legend>
-      <label for="openaiKey">API Key</label>
-      <input id="openaiKey" type="password" placeholder="sk-..." />
-      <label for="openaiModel">Modelo</label>
-      <input id="openaiModel" type="text" value="gpt-4o-mini" />
-    </fieldset>
-
-    <fieldset>
-      <legend><strong>Gemini</strong></legend>
-      <label for="geminiKey">API Key</label>
-      <input id="geminiKey" type="password" placeholder="AIza..." />
-      <label for="geminiModel">Modelo</label>
-      <input id="geminiModel" type="text" value="gemini-1.5-flash" />
+      <legend><strong>Dados visíveis no Painel</strong></legend>
+      <div id="dataTypes">
+        <label><input type="checkbox" value="nome" checked> Nome Completo</label>
+        <label><input type="checkbox" value="email" checked> E-mail</label>
+        <label><input type="checkbox" value="cpf" checked> CPF</label>
+        <label><input type="checkbox" value="cnpj" checked> CNPJ</label>
+        <label><input type="checkbox" value="telefone" checked> Telefone</label>
+        <label><input type="checkbox" value="uuid" checked> UUID v4</label>
+      </div>
+      <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+        Selecione quais tipos serão exibidos no painel lateral. Por padrão, todos são exibidos.
+      </div>
     </fieldset>
 
     <div class="row">

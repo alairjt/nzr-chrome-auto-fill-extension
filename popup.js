@@ -1,42 +1,33 @@
-document.getElementById('openOptions').addEventListener('click', async (e) => {
-  e.preventDefault();
-  if (chrome.runtime.openOptionsPage) chrome.runtime.openOptionsPage();
-});
-
 const statusEl = document.getElementById('status');
-const btn = document.getElementById('autofillBtn');
+const dataPanelBtn = document.getElementById('dataPanelBtn');
+const openOptionsLink = document.getElementById('openOptionsLink');
 
 // --- Language helpers ---
-async function getLanguage() {
-  try {
-    const { language } = await chrome.storage.sync.get({ language: 'pt' });
-    return (language === 'manezinho') ? 'manezinho' : 'pt';
-  } catch { return 'pt'; }
-}
-
-function i18n(lang) {
-  const L = (lang === 'manezinho');
+function i18n() {
   return {
-    btnLabel: L ? 'Preenche aí, manezinho' : 'Preencher agora',
-    analyzing: L ? 'Ô manezinho, tô catando as coisas e preenchendo...' : 'Analisando página e preenchendo...',
-    restricted: L ? 'Essa página é das interna (tipo chrome://). Abre um site comum, tá?' : 'Esta página é restrita (ex: chrome://). Abra uma página web comum para usar.',
-    noTab: L ? 'Não achei a aba ativa, ó' : 'Aba ativa não encontrada',
-    success: (n) => L ? `Campos preenchidos: ${n}` : `Campos preenchidos: ${n}`,
-    errorPrefix: L ? 'Eita, deu ruim' : 'Erro',
-    fileHint: (hint) => hint,
+    panelOpening: 'Abrindo painel de dados...',
+    restricted: 'Esta página é restrita (ex: chrome://). Abra uma página web comum para usar.',
+    noTab: 'Aba ativa não encontrada',
+    errorPrefix: 'Erro',
   };
 }
 
-// Initialize localized UI
-(async () => {
-  const lang = await getLanguage();
-  const t = i18n(lang);
-  try { btn.textContent = t.btnLabel; } catch (_) {}
-})();
+// Initialize UI
+const t = i18n();
 
 function setStatus(html, cls = '') {
   statusEl.className = cls;
   statusEl.innerHTML = html;
+  
+  // Limpar a mensagem após 3 segundos
+  if (html) {
+    setTimeout(() => {
+      if (statusEl.innerHTML === html) {
+        statusEl.innerHTML = '';
+        statusEl.className = '';
+      }
+    }, 3000);
+  }
 }
 
 function isRestrictedUrl(url) {
@@ -54,35 +45,53 @@ async function ensureContentScript(tabId) {
   }
 }
 
-btn.addEventListener('click', async () => {
-  btn.disabled = true;
-  const lang = await getLanguage();
-  const t = i18n(lang);
-  setStatus(t.analyzing);
+// Data panel toggle button
+dataPanelBtn.addEventListener('click', async () => {
+  const t = i18n();
+  setStatus(t.panelOpening);
+  
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) throw new Error(t.noTab);
     if (isRestrictedUrl(tab.url)) {
-      throw new Error(t.restricted);
+      setStatus(`<span class="err">${t.restricted}</span>`, 'err');
+      return;
     }
-
-    let resp;
+    
     try {
-      resp = await chrome.tabs.sendMessage(tab.id, { type: 'POPUP_AUTOFILL' });
+      await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_DATA_PANEL' });
+      window.close(); // Fecha o popup após abrir o painel
     } catch (e) {
-      // No receiver: try to inject content script and retry
+      // Try to inject content script and retry
       const injected = await ensureContentScript(tab.id);
-      if (!injected) throw e;
-      resp = await chrome.tabs.sendMessage(tab.id, { type: 'POPUP_AUTOFILL' });
+      if (injected) {
+        await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_DATA_PANEL' });
+        window.close(); // Fecha o popup após abrir o painel
+      } else {
+        throw e;
+      }
     }
-
-    if (!resp?.ok) throw new Error(resp?.error || (lang === 'manezinho' ? 'Não deu pra preencher agora' : 'Falha no preenchimento'));
-    setStatus(`<span class="ok">${t.success(resp.filled)}</span>`, 'ok');
   } catch (e) {
-    const hint = (location && location.href && location.href.startsWith('chrome-extension://')) ?
-      ' Se estiver testando um arquivo local (file://), habilite "Permitir acesso a URLs de arquivos" na página da extensão.' : '';
-    setStatus(`<span class="err">${t.errorPrefix}: ${e.message}${hint}</span>`, 'err');
-  } finally {
-    btn.disabled = false;
+    console.warn('Failed to toggle data panel:', e);
+    setStatus(`<span class="err">${t.errorPrefix}: ${e.message}</span>`, 'err');
   }
 });
+
+// Open options page (outside of ensureContentScript)
+if (openOptionsLink) {
+  openOptionsLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      if (chrome.runtime.openOptionsPage) {
+        await chrome.runtime.openOptionsPage();
+      } else {
+        const url = chrome.runtime.getURL('options.html');
+        await chrome.tabs.create({ url });
+      }
+      window.close();
+    } catch (err) {
+      console.warn('Failed to open options page:', err);
+      setStatus('<span class="err">Não foi possível abrir as configurações.</span>', 'err');
+    }
+  });
+}
