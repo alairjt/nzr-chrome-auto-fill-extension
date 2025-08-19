@@ -10,6 +10,40 @@
   
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// --- Pin helpers ---
+function updatePinUI(panel) {
+  if (!panel) return;
+  const pinBtn = panel.querySelector('.nzr-pin-btn');
+  if (pinBtn) {
+    pinBtn.classList.toggle('active', !!DATA_PANEL_PINNED);
+    pinBtn.setAttribute('aria-pressed', String(!!DATA_PANEL_PINNED));
+    pinBtn.title = DATA_PANEL_PINNED ? 'Desafixar painel' : 'Fixar painel';
+  }
+}
+
+function applyPinnedLayout(panel) {
+  // Only offset layout if panel is open and pinned
+  const isOpen = panel && panel.classList && panel.classList.contains('open');
+  if (isOpen && DATA_PANEL_PINNED) {
+    document.body.classList.add('nzr-panel-pinned');
+  } else {
+    document.body.classList.remove('nzr-panel-pinned');
+  }
+}
+
+function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
+  DATA_PANEL_PINNED = !!value;
+  updatePinUI(panel);
+  applyPinnedLayout(panel);
+  if (persist) {
+    try {
+      chrome.storage.sync.set({ dataPanelPinned: DATA_PANEL_PINNED });
+    } catch (e) {
+      console.warn('Falha ao salvar dataPanelPinned:', e);
+    }
+  }
+}
+
     // --- Language helpers (cached for sync usage) ---
     let LANG_CACHE = 'pt';
     let I18N_CACHE = makeI18n('pt');
@@ -37,6 +71,7 @@
     let DATA_PANEL_INSTANCE = null;
     let SELECTED_INPUT = null;
     let DATA_TYPES_VISIBLE = null; // null => all types visible
+    let DATA_PANEL_PINNED = false; // when true, page content is offset so panel doesn't overlay
   
     // Funções de navegação entre abas removidas - não são mais utilizadas
   
@@ -372,6 +407,13 @@
         return `(${ddd}) ${nono}${primeiros4}-${ultimos4}`;
       },
       
+      cep: () => {
+        // CEP brasileiro no formato 00000-000
+        const left = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+        const right = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        return `${left}-${right}`;
+      },
+      
       uuid: () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           const r = Math.random() * 16 | 0;
@@ -389,6 +431,7 @@
         cpf: 'CPF',
         cnpj: 'CNPJ',
         telefone: 'Telefone',
+        cep: 'CEP',
         uuid: 'UUID v4'
       };
       return labels[type] || type;
@@ -401,6 +444,7 @@
         cpf: '🆔',
         cnpj: '🏢',
         telefone: '📱',
+        cep: '📮',
         uuid: '🔑'
       };
       return icons[type] || '📝';
@@ -413,6 +457,7 @@
         cpf: 'CPF com dígitos verificadores',
         cnpj: 'CNPJ com dígitos verificadores',
         telefone: 'Número de celular brasileiro',
+        cep: 'CEP brasileiro no formato 00000-000',
         uuid: 'Identificador único universal'
       };
       return descriptions[type] || 'Dado gerado automaticamente';
@@ -438,11 +483,18 @@
               <span class="nzr-header-subtitle">Dados fictícios para testes</span>
             </div>
           </div>
-          <button class="nzr-close-btn" title="Fechar painel">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
+          <div class="nzr-header-actions">
+            <button class="nzr-pin-btn" title="Fixar painel" aria-pressed="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.85 2.15a.5.5 0 01.7 0l6.3 6.3a.5.5 0 010 .7l-4.07 4.07a2.5 2.5 0 00-.66 1.17l-.49 1.95a1 1 0 01-1.22.73l-3.32-.89-4.95 4.95a.75.75 0 11-1.06-1.06l4.95-4.95-.9-3.32a1 1 0 01.73-1.21l1.95-.49c.43-.11.84-.34 1.17-.66l4.07-4.07z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="nzr-close-btn" title="Fechar painel">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
         
         <div class="nzr-panel-content">
@@ -538,6 +590,11 @@
             align-items: center !important;
             gap: 12px !important;
           }
+          .nzr-header-actions {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+          }
           
           .nzr-header-icon {
             font-size: 24px !important;
@@ -558,7 +615,7 @@
             font-weight: 500 !important;
           }
           
-          .nzr-close-btn {
+          .nzr-close-btn, .nzr-pin-btn {
             background: rgba(255, 255, 255, 0.1) !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             border-radius: 8px !important;
@@ -568,9 +625,20 @@
             transition: all 0.2s ease !important;
             backdrop-filter: blur(10px) !important;
           }
-          .nzr-close-btn:hover {
+          .nzr-close-btn:hover, .nzr-pin-btn:hover {
             background: rgba(255, 255, 255, 0.2) !important;
             transform: scale(1.05) !important;
+          }
+          .nzr-pin-btn.active {
+            background: rgba(34, 197, 94, 0.25) !important;
+            border-color: rgba(34, 197, 94, 0.4) !important;
+            color: #dcfce7 !important;
+          }
+
+          /* When pinned, offset page content to avoid overlay */
+          body.nzr-panel-pinned {
+            padding-right: 400px !important;
+            transition: padding-right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
           }
           
           /* Panel Content */
@@ -909,6 +977,20 @@
       document.body.appendChild(panel);
       setupPanelEvents(panel);
       DATA_PANEL_INSTANCE = panel;
+      // Initialize pin state from storage and reflect UI
+      try {
+        chrome.storage.sync.get({ dataPanelPinned: false }, (cfg) => {
+          if (chrome.runtime && chrome.runtime.lastError) {
+            console.warn('Erro ao carregar dataPanelPinned:', chrome.runtime.lastError);
+          }
+          setPinned(!!cfg?.dataPanelPinned, false, panel);
+        });
+      } catch (e) {
+        console.warn('Falha ao acessar storage.sync para pin:', e);
+        setPinned(false, false, panel);
+      }
+      setupPanelKeyboardNavigation(panel);
+
       return panel;
     }
     
@@ -917,6 +999,15 @@
       panel.querySelector('.nzr-close-btn').addEventListener('click', () => {
         hideDataPanel();
       });
+      
+      // Pin button
+      const pinBtn = panel.querySelector('.nzr-pin-btn');
+      if (pinBtn) {
+        pinBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          setPinned(!DATA_PANEL_PINNED, true, panel);
+        });
+      }
       
       // Regenerate buttons
       panel.querySelectorAll('.nzr-regenerate-btn').forEach(btn => {
@@ -951,8 +1042,9 @@
           const valueEl = panel.querySelector(`.nzr-data-value[data-type="${type}"]`);
           const value = valueEl.textContent.trim();
           
-          try {
-            await navigator.clipboard.writeText(value);
+          const success = await copyToClipboard(value);
+          
+          if (success) {
             showEnhancedMessage('✅ Copiado para área de transferência', 'success');
             
             // Visual feedback
@@ -963,9 +1055,8 @@
               e.currentTarget.style.transform = '';
               e.currentTarget.style.color = '';
             }, 200);
-            
-          } catch (err) {
-            showEnhancedMessage('❌ Erro ao copiar', 'error');
+          } else {
+            showEnhancedMessage('❌ Erro ao copiar para área de transferência', 'error');
           }
         });
       });
@@ -1004,9 +1095,9 @@
         el.addEventListener('click', async (e) => {
           const value = e.target.textContent.trim();
           
-          try {
-            await navigator.clipboard.writeText(value);
-            
+          const success = await copyToClipboard(value);
+          
+          if (success) {
             // Enhanced visual feedback
             const originalBg = e.target.style.background;
             const originalBorder = e.target.style.borderColor;
@@ -1033,8 +1124,8 @@
               }, 400);
             }
             
-          } catch (err) {
-            showEnhancedMessage('❌ Erro ao copiar', 'error');
+          } else {
+            showEnhancedMessage('❌ Erro ao copiar para área de transferência', 'error');
           }
         });
       });
@@ -1147,6 +1238,52 @@
       panel.addEventListener('blur', () => {
         panel.style.outline = 'none';
       });
+    }
+
+    // Robust copy function with fallback
+    async function copyToClipboard(text) {
+      try {
+        // Try modern clipboard API first
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+        // Fallback for older browsers or non-secure contexts
+        return copyToClipboardFallback(text);
+      } catch (err) {
+        console.log('Clipboard API failed, trying fallback:', err);
+        return copyToClipboardFallback(text);
+      }
+    }
+    
+    function copyToClipboardFallback(text) {
+      try {
+        // Create a temporary textarea element
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.cssText = `
+          position: fixed;
+          top: -1000px;
+          left: -1000px;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+        `;
+        
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        // Try execCommand
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        return successful;
+      } catch (err) {
+        console.error('Fallback copy failed:', err);
+        return false;
+      }
     }
 
     function showEnhancedMessage(text, type = 'info') {
@@ -1329,8 +1466,8 @@
         // Create enhanced display text with more details
         let displayText = `✅ Campo Selecionado: ${label}`;
         if (type !== 'text') displayText += ` (${type})`;
-        if (placeholder) displayText += ` • "${placeholder}"`;
-        
+        if (placeholder && placeholder !== label) displayText += ` • "${placeholder}"`;
+
         infoEl.textContent = displayText;
         infoContainer.classList.add('has-selection');
         
@@ -1633,6 +1770,8 @@
     function showDataPanel() {
       const panel = createDataPanel();
       panel.classList.add('open');
+      // Apply layout if pinned
+      applyPinnedLayout(panel);
       setupInputSelection(); // Setup input selection tracking
       updateDataValuesAvailability(); // Update initial state
     }
@@ -1640,6 +1779,8 @@
     function hideDataPanel() {
       if (DATA_PANEL_INSTANCE) {
         DATA_PANEL_INSTANCE.classList.remove('open');
+        // Remove layout offset when hidden, regardless of pin state
+        document.body.classList.remove('nzr-panel-pinned');
       }
     }
     
@@ -1768,6 +1909,7 @@
       selections: [],
       annotations: [],
       textElements: [],
+      shapeElements: [],
       currentTextInput: null,
       draggedElement: null,
       isDragging: false,
@@ -1915,6 +2057,70 @@
           pointer-events: auto !important;
           user-select: none !important;
         }
+        .nzr-shape-element {
+          position: absolute !important;
+          pointer-events: none !important;
+          user-select: none !important;
+          cursor: move !important;
+        }
+        .nzr-shape-element.nzr-moveable-element {
+          pointer-events: auto !important;
+        }
+        .nzr-shape-element svg {
+          display: block !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+        .nzr-save-dropdown {
+          position: relative !important;
+          display: inline-block !important;
+        }
+        .nzr-save-options {
+          position: absolute !important;
+          top: 100% !important;
+          left: 0 !important;
+          background: #1f2937 !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          border-radius: 8px !important;
+          min-width: 160px !important;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+          z-index: 2147483649 !important;
+          opacity: 0 !important;
+          visibility: hidden !important;
+          transform: translateY(-5px) !important;
+          transition: all 0.2s ease !important;
+          margin-top: 4px !important;
+        }
+        .nzr-save-dropdown:hover .nzr-save-options {
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: translateY(0) !important;
+        }
+        .nzr-save-option {
+          display: block !important;
+          width: 100% !important;
+          padding: 10px 12px !important;
+          background: transparent !important;
+          border: none !important;
+          color: #d1d5db !important;
+          font-size: 13px !important;
+          font-weight: 500 !important;
+          text-align: left !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          border-radius: 6px !important;
+          margin: 2px !important;
+        }
+        .nzr-save-option:hover {
+          background: rgba(59, 130, 246, 0.2) !important;
+          color: #60a5fa !important;
+        }
+        .nzr-save-option:first-child {
+          margin-top: 4px !important;
+        }
+        .nzr-save-option:last-child {
+          margin-bottom: 4px !important;
+        }
         .nzr-font-size {
           background: #374151 !important;
           color: #d1d5db !important;
@@ -2023,7 +2229,13 @@
         <div class="nzr-tool-group">
           <button class="nzr-tool-btn" id="helpButton" title="Ajuda (H)">❓</button>
           <button class="nzr-tool-btn" id="clearAll" title="Limpar tudo">🗑</button>
-          <button class="nzr-tool-btn" id="saveImage" title="Salvar imagem">💾</button>
+          <div class="nzr-save-dropdown">
+            <button class="nzr-tool-btn" id="saveImage" title="Salvar imagem">💾</button>
+            <div class="nzr-save-options">
+              <button class="nzr-save-option" data-type="full" title="Capturar tela inteira">🖥️ Tela Inteira</button>
+              <button class="nzr-save-option" data-type="selection" title="Capturar área selecionada">✂️ Seleção</button>
+            </div>
+          </div>
           <button class="nzr-tool-btn" id="exitAnnotation" title="Sair (ESC)">✕</button>
         </div>
       `;
@@ -2082,9 +2294,21 @@
       
       // Action buttons
       toolbar.querySelector('#clearAll').addEventListener('click', clearCanvas);
-      toolbar.querySelector('#saveImage').addEventListener('click', saveAnnotatedImage);
       toolbar.querySelector('#exitAnnotation').addEventListener('click', stopAnnotationMode);
       toolbar.querySelector('#helpButton').addEventListener('click', showHelpModal);
+      
+      // Save options
+      toolbar.querySelectorAll('.nzr-save-option').forEach(option => {
+        option.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const type = e.target.dataset.type;
+          if (type === 'full') {
+            saveAnnotatedImage();
+          } else if (type === 'selection') {
+            saveSelectionImage();
+          }
+        });
+      });
     }
 
     function setupCanvasEvents(canvas) {
@@ -2199,6 +2423,7 @@
       console.log('getElementAtPosition called with:', x, y);
       console.log('Text elements count:', ANNOTATION.textElements.length);
       console.log('Selection elements count:', ANNOTATION.selections.length);
+      console.log('Shape elements count:', ANNOTATION.shapeElements.length);
       
       // Check text elements
       for (let i = 0; i < ANNOTATION.textElements.length; i++) {
@@ -2218,6 +2443,27 @@
         if (x >= elX && x <= elX + elWidth && y >= elY && y <= elY + elHeight) {
           console.log('Found text element at position');
           return textEl;
+        }
+      }
+      
+      // Check shape elements
+      for (let i = 0; i < ANNOTATION.shapeElements.length; i++) {
+        const shapeEl = ANNOTATION.shapeElements[i];
+        if (!shapeEl || !document.contains(shapeEl)) continue;
+        
+        const rect = shapeEl.getBoundingClientRect();
+        const overlayRect = ANNOTATION.overlay.getBoundingClientRect();
+        
+        const elX = rect.left - overlayRect.left;
+        const elY = rect.top - overlayRect.top;
+        const elWidth = rect.width;
+        const elHeight = rect.height;
+        
+        console.log(`Shape element ${i}:`, { elX, elY, elWidth, elHeight, rect });
+        
+        if (x >= elX && x <= elX + elWidth && y >= elY && y <= elY + elHeight) {
+          console.log('Found shape element at position');
+          return shapeEl;
         }
       }
       
@@ -2355,6 +2601,10 @@
         // Prevent text selection
         document.body.style.userSelect = 'none';
         document.body.style.webkitUserSelect = 'none';
+        
+        // Add global listeners only when drag starts
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
       }
 
       function onMouseMove(e) {
@@ -2401,18 +2651,18 @@
         // Restore text selection
         document.body.style.userSelect = '';
         document.body.style.webkitUserSelect = '';
+        
+        // Remove global listeners when drag ends
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
       }
       
       // Add event listeners to element
       element.addEventListener('mousedown', onMouseDown);
-      
-      // Add global listeners for move and up
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
     }
 
     function makeElementsMoveable() {
-      console.log('Making elements moveable. Text elements:', ANNOTATION.textElements.length, 'Selections:', ANNOTATION.selections.length);
+      console.log('Making elements moveable. Text elements:', ANNOTATION.textElements.length, 'Selections:', ANNOTATION.selections.length, 'Shapes:', ANNOTATION.shapeElements.length);
       
       // Make all existing text elements moveable
       ANNOTATION.textElements.forEach(textEl => {
@@ -2429,6 +2679,15 @@
           selection.classList.add('nzr-moveable-element');
           setupElementMovement(selection);
           console.log('Added movement to selection:', selection);
+        }
+      });
+      
+      // Make all existing shape elements moveable
+      ANNOTATION.shapeElements.forEach(shapeEl => {
+        if (!shapeEl.classList.contains('nzr-moveable-element')) {
+          shapeEl.classList.add('nzr-moveable-element');
+          setupElementMovement(shapeEl);
+          console.log('Added movement to shape element:', shapeEl);
         }
       });
     }
@@ -2517,7 +2776,128 @@
     }
 
     function drawShape(ctx, startX, startY, endX, endY) {
-      drawShapePreview(ctx, startX, startY, endX, endY);
+      // Create moveable shape element instead of drawing on canvas
+      createShapeElement(ANNOTATION.currentTool, startX, startY, endX, endY);
+    }
+    
+    function createShapeElement(shapeType, startX, startY, endX, endY) {
+      const width = Math.abs(endX - startX);
+      const height = Math.abs(endY - startY);
+      const left = Math.min(startX, endX);
+      const top = Math.min(startY, endY);
+      
+      // Create container element
+      const shapeElement = document.createElement('div');
+      shapeElement.className = 'nzr-shape-element';
+      shapeElement.style.left = left + 'px';
+      shapeElement.style.top = top + 'px';
+      shapeElement.style.width = width + 'px';
+      shapeElement.style.height = height + 'px';
+      shapeElement.dataset.shapeType = shapeType;
+      shapeElement.dataset.originalColor = ANNOTATION.strokeColor;
+      shapeElement.dataset.originalWidth = ANNOTATION.strokeWidth;
+      
+      // Create SVG element
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      
+      // Create shape based on type
+      let shapeEl;
+      switch (shapeType) {
+        case 'rectangle':
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          shapeEl.setAttribute('x', '0');
+          shapeEl.setAttribute('y', '0');
+          shapeEl.setAttribute('width', width);
+          shapeEl.setAttribute('height', height);
+          shapeEl.setAttribute('fill', 'none');
+          shapeEl.setAttribute('stroke', ANNOTATION.strokeColor);
+          shapeEl.setAttribute('stroke-width', ANNOTATION.strokeWidth);
+          break;
+          
+        case 'circle':
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+          shapeEl.setAttribute('cx', width / 2);
+          shapeEl.setAttribute('cy', height / 2);
+          shapeEl.setAttribute('rx', width / 2);
+          shapeEl.setAttribute('ry', height / 2);
+          shapeEl.setAttribute('fill', 'none');
+          shapeEl.setAttribute('stroke', ANNOTATION.strokeColor);
+          shapeEl.setAttribute('stroke-width', ANNOTATION.strokeWidth);
+          break;
+          
+        case 'line':
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          shapeEl.setAttribute('x1', startX > endX ? width : 0);
+          shapeEl.setAttribute('y1', startY > endY ? height : 0);
+          shapeEl.setAttribute('x2', startX > endX ? 0 : width);
+          shapeEl.setAttribute('y2', startY > endY ? 0 : height);
+          shapeEl.setAttribute('stroke', ANNOTATION.strokeColor);
+          shapeEl.setAttribute('stroke-width', ANNOTATION.strokeWidth);
+          break;
+          
+        case 'arrow':
+          const arrowPath = createArrowPath(width, height, startX > endX, startY > endY);
+          shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          shapeEl.setAttribute('d', arrowPath);
+          shapeEl.setAttribute('fill', 'none');
+          shapeEl.setAttribute('stroke', ANNOTATION.strokeColor);
+          shapeEl.setAttribute('stroke-width', ANNOTATION.strokeWidth);
+          shapeEl.setAttribute('stroke-linejoin', 'round');
+          shapeEl.setAttribute('stroke-linecap', 'round');
+          break;
+      }
+      
+      if (shapeEl) {
+        svg.appendChild(shapeEl);
+      }
+      
+      // Add remove button
+      const removeBtn = document.createElement('div');
+      removeBtn.innerHTML = '×';
+      removeBtn.className = 'nzr-remove-btn';
+      removeBtn.title = 'Remover forma';
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const index = ANNOTATION.shapeElements.indexOf(shapeElement);
+        if (index > -1) {
+          ANNOTATION.shapeElements.splice(index, 1);
+        }
+        shapeElement.remove();
+      });
+      
+      shapeElement.appendChild(svg);
+      shapeElement.appendChild(removeBtn);
+      
+      ANNOTATION.overlay.appendChild(shapeElement);
+      ANNOTATION.shapeElements.push(shapeElement);
+      
+      // Make element moveable
+      shapeElement.classList.add('nzr-moveable-element');
+      setupElementMovement(shapeElement);
+      
+      console.log('Created shape element:', shapeType, 'at', left, top, 'size', width, 'x', height);
+    }
+    
+    function createArrowPath(width, height, reverseX, reverseY) {
+      const headLength = Math.min(15, Math.min(width, height) * 0.3);
+      
+      let startX = reverseX ? width : 0;
+      let startY = reverseY ? height : 0;
+      let endX = reverseX ? 0 : width;
+      let endY = reverseY ? 0 : height;
+      
+      const angle = Math.atan2(endY - startY, endX - startX);
+      
+      // Arrowhead points
+      const headX1 = endX - headLength * Math.cos(angle - Math.PI / 6);
+      const headY1 = endY - headLength * Math.sin(angle - Math.PI / 6);
+      const headX2 = endX - headLength * Math.cos(angle + Math.PI / 6);
+      const headY2 = endY - headLength * Math.sin(angle + Math.PI / 6);
+      
+      return `M ${startX} ${startY} L ${endX} ${endY} M ${endX} ${endY} L ${headX1} ${headY1} M ${endX} ${endY} L ${headX2} ${headY2}`;
     }
 
     function drawArrow(ctx, fromX, fromY, toX, toY) {
@@ -2541,12 +2921,18 @@
 
     function clearCanvas() {
       ANNOTATION.ctx.clearRect(0, 0, ANNOTATION.canvas.width, ANNOTATION.canvas.height);
+      
+      // Clear selections
       ANNOTATION.selections.forEach(sel => sel.remove());
       ANNOTATION.selections = [];
       
       // Clear text elements
       ANNOTATION.textElements.forEach(textEl => textEl.remove());
       ANNOTATION.textElements = [];
+      
+      // Clear shape elements
+      ANNOTATION.shapeElements.forEach(shapeEl => shapeEl.remove());
+      ANNOTATION.shapeElements = [];
       
       // Remove any active text input
       if (ANNOTATION.currentTextInput) {
@@ -2739,6 +3125,117 @@
       });
     }
 
+    async function saveSelectionImage() {
+      try {
+        // Check if there are any selection areas
+        if (ANNOTATION.selections.length === 0) {
+          showEnhancedMessage('⚠️ Primeiro crie uma seleção na tela', 'warning');
+          return;
+        }
+        
+        // Handle multiple selections by getting bounding box
+        let selectionRect;
+        if (ANNOTATION.selections.length === 1) {
+          // Single selection
+          const selection = ANNOTATION.selections[0];
+          selectionRect = {
+            left: parseFloat(selection.style.left),
+            top: parseFloat(selection.style.top),
+            width: parseFloat(selection.style.width),
+            height: parseFloat(selection.style.height)
+          };
+        } else {
+          // Multiple selections - get bounding box
+          let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+          
+          ANNOTATION.selections.forEach(selection => {
+            const left = parseFloat(selection.style.left);
+            const top = parseFloat(selection.style.top);
+            const width = parseFloat(selection.style.width);
+            const height = parseFloat(selection.style.height);
+            
+            minX = Math.min(minX, left);
+            minY = Math.min(minY, top);
+            maxX = Math.max(maxX, left + width);
+            maxY = Math.max(maxY, top + height);
+          });
+          
+          selectionRect = {
+            left: minX,
+            top: minY,
+            width: maxX - minX,
+            height: maxY - minY
+          };
+          
+          showEnhancedMessage(`📦 Capturando ${ANNOTATION.selections.length} seleções`, 'info');
+        }
+        
+        // Request screenshot from background script
+        const response = await new Promise((resolve) => {
+          chrome.runtime.sendMessage({ type: 'REQUEST_VISIBLE_TAB_CAPTURE' }, resolve);
+        });
+        
+        if (!response.ok) {
+          throw new Error(response.error || 'Falha na captura');
+        }
+        
+        // Create composite image
+        const img = new Image();
+        img.onload = () => {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = selectionRect.width;
+          tempCanvas.height = selectionRect.height;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          // Calculate scale factors
+          const scaleX = ANNOTATION.canvas.width / window.innerWidth;
+          const scaleY = ANNOTATION.canvas.height / window.innerHeight;
+          
+          // Draw cropped screenshot
+          tempCtx.drawImage(
+            img,
+            selectionRect.left * scaleX,
+            selectionRect.top * scaleY,
+            selectionRect.width * scaleX,
+            selectionRect.height * scaleY,
+            0,
+            0,
+            selectionRect.width,
+            selectionRect.height
+          );
+          
+          // Draw annotations (cropped to selection)
+          tempCtx.drawImage(
+            ANNOTATION.canvas,
+            selectionRect.left,
+            selectionRect.top,
+            selectionRect.width,
+            selectionRect.height,
+            0,
+            0,
+            selectionRect.width,
+            selectionRect.height
+          );
+          
+          // Convert to blob and download
+          tempCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `selection-${Date.now()}.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showEnhancedMessage('✅ Seleção salva com sucesso', 'success');
+          });
+        };
+        img.src = response.dataUrl;
+        
+      } catch (error) {
+        console.error('Erro ao salvar seleção:', error);
+        showEnhancedMessage('❌ Erro ao salvar seleção', 'error');
+      }
+    }
+
     async function saveAnnotatedImage() {
       try {
         // Request screenshot from background script
@@ -2772,14 +3269,14 @@
             link.download = `annotation-${Date.now()}.png`;
             link.click();
             URL.revokeObjectURL(url);
-            showMessage('Imagem salva');
+            showEnhancedMessage('✅ Tela inteira salva com sucesso', 'success');
           });
         };
         img.src = response.dataUrl;
         
       } catch (error) {
         console.error('Erro ao salvar imagem:', error);
-        showMessage('Erro ao salvar imagem');
+        showEnhancedMessage('❌ Erro ao salvar tela inteira', 'error');
       }
     }
 
@@ -2932,6 +3429,7 @@
       ANNOTATION.toolbar = null;
       ANNOTATION.selections = [];
       ANNOTATION.textElements = [];
+      ANNOTATION.shapeElements = [];
       ANNOTATION.currentTextInput = null;
       ANNOTATION.draggedElement = null;
       ANNOTATION.isDragging = false;
@@ -3121,14 +3619,33 @@
           </section>
 
           <section>
-            <h3 style="color: #1f2937; font-size: 18px; margin: 0 0 12px 0; font-weight: 600;">📸 Salvando Anotações</h3>
+            <h3 style="color: #1f2937; font-size: 18px; margin: 0 0 12px 0; font-weight: 600;">📸 Captura de Tela Avançada</h3>
             <p style="margin: 0 0 12px 0;">
-              Clique no botão <strong>💾 Salvar</strong> para capturar a tela atual com todas as suas anotações. 
-              A imagem será automaticamente baixada no formato PNG.
+              Passe o mouse sobre o botão <strong>💾</strong> para ver as opções de captura disponíveis:
             </p>
-            <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px;">
+            <div style="display: grid; gap: 12px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px;">
+                <span style="font-size: 20px;">🖥️</span>
+                <div>
+                  <strong>Tela Inteira</strong><br>
+                  <small style="color: #6b7280;">Captura toda a página visível com todas as anotações</small>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9fafb; border-radius: 8px;">
+                <span style="font-size: 20px;">✂️</span>
+                <div>
+                  <strong>Captura por Seleção</strong><br>
+                  <small style="color: #6b7280;">Captura apenas as áreas demarcadas com a ferramenta Seleção</small>
+                </div>
+              </div>
+            </div>
+            <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
               <strong style="color: #1e40af;">💡 Dica:</strong> 
-              <span style="color: #1e3a8a;">As anotações são compostas com a captura de tela, criando uma imagem final única!</span>
+              <span style="color: #1e3a8a;">Para captura por seleção, primeiro use a ferramenta Seleção (⬚) para marcar as áreas desejadas, depois escolha "✂️ Seleção" no menu de captura!</span>
+            </div>
+            <div style="background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 8px; padding: 12px;">
+              <strong style="color: #0369a1;">📦 Múltiplas Seleções:</strong> 
+              <span style="color: #0c4a6e;">Se você criou várias áreas de seleção, todas serão capturadas automaticamente como imagens separadas!</span>
             </div>
           </section>
         </div>

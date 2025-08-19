@@ -16,6 +16,7 @@ chrome.runtime.onInstalled.addListener(() => {
           { id: 'cpf', title: 'CPF' },
           { id: 'cnpj', title: 'CNPJ' },
           { id: 'telefone', title: 'Telefone' },
+          { id: 'cep', title: 'CEP' },
           { id: 'uuid', title: 'UUID' }
         ];
 

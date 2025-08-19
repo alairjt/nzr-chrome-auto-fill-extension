@@ -70,6 +70,98 @@ async function save() {
   }
 }
 
+// Add ripple effect to save button
+function addRippleEffect(element) {
+  element.addEventListener('click', function(e) {
+    const ripple = document.createElement('div');
+    ripple.style.cssText = `
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      z-index: 1;
+    `;
+    
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+    
+    element.appendChild(ripple);
+    
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  });
+}
+
+// Add ripple effect styles
+const rippleStyle = document.createElement('style');
+rippleStyle.textContent = `
+  @keyframes ripple {
+    to {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  
+  .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+`;
+document.head.appendChild(rippleStyle);
+
+// Add hover effects to checkbox items
+function addCheckboxEffects() {
+  const checkboxItems = document.querySelectorAll('.checkbox-item');
+  checkboxItems.forEach(item => {
+    const checkbox = item.querySelector('input[type="checkbox"]');
+    
+    // Click anywhere on the item to toggle checkbox
+    item.addEventListener('click', (e) => {
+      if (e.target.type !== 'checkbox') {
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event('change'));
+      }
+    });
+    
+    // Visual feedback when checkbox changes
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        item.style.background = 'rgba(16, 185, 129, 0.2)';
+        item.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      } else {
+        item.style.background = 'rgba(255, 255, 255, 0.1)';
+        item.style.borderColor = 'transparent';
+      }
+    });
+  });
+}
+
+// Add entrance animations
+function addEntranceAnimations() {
+  const settingCards = document.querySelectorAll('.setting-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationPlayState = 'running';
+      }
+    });
+  });
+  
+  settingCards.forEach(card => {
+    observer.observe(card);
+  });
+}
+
 els.saveBtn.addEventListener('click', save);
+addRippleEffect(els.saveBtn);
+addCheckboxEffects();
+addEntranceAnimations();
 
 load();

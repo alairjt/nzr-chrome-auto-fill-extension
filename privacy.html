@@ -6,125 +6,604 @@
     <title>Política de Privacidade - NZR DevTool</title>
     <meta name="description" content="Política de Privacidade da extensão NZR DevTool." />
     <style>
-      :root {
-        --fg: #111827;
-        --muted: #4b5563;
-        --bg: #ffffff;
-        --primary: #2563eb;
-        --border: #e5e7eb;
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
+      
       body {
-        margin: 0 auto;
-        padding: 24px;
-        max-width: 900px;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        color: var(--fg);
-        background: var(--bg);
-        line-height: 1.55;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        position: relative;
+        overflow-x: hidden;
+        padding: 0;
+        line-height: 1.6;
       }
-      header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-      header img { width: 28px; height: 28px; border-radius: 6px; }
-      h1 { font-size: 22px; margin: 0; }
-      h2 { font-size: 18px; margin-top: 22px; }
-      p { margin: 10px 0; }
-      ul { margin: 8px 0 8px 20px; }
-      .muted { color: var(--muted); }
-      .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #fff; }
-      a { color: var(--primary); text-decoration: none; }
-      .small { font-size: 12px; }
-      footer { margin-top: 28px; color: var(--muted); font-size: 12px; }
+      
+      /* Background decoration */
+      body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 20s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        min-height: 100vh;
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 48px;
+        animation: slideInDown 0.6s ease;
+      }
+      
+      .header img {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        margin-bottom: 20px;
+      }
+      
+      .header h1 {
+        font-size: 36px;
+        font-weight: 700;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(45deg, #ffffff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 12px;
+      }
+      
+      .header .subtitle {
+        font-size: 18px;
+        opacity: 0.9;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      
+      .content-card {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        padding: 40px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        animation: slideInUp 0.6s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .content-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.8s ease;
+      }
+      
+      .content-card:hover::before {
+        left: 100%;
+      }
+      
+      .last-updated {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .section {
+        margin-bottom: 32px;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .section:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+      
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      
+      .section-icon {
+        font-size: 24px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+      }
+      
+      .section h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        margin: 0;
+      }
+      
+      .section p {
+        margin: 12px 0;
+        font-size: 15px;
+        opacity: 0.95;
+        line-height: 1.7;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      
+      .section ul {
+        margin: 16px 0;
+        padding-left: 20px;
+      }
+      
+      .section li {
+        margin: 8px 0;
+        font-size: 15px;
+        opacity: 0.95;
+        line-height: 1.6;
+      }
+      
+      .highlight {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+      }
+      
+      .code {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 13px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .api-list {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin: 16px 0;
+      }
+      
+      .api-list li {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin: 8px 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin: 16px 0;
+      }
+      
+      .control-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+      }
+      
+      .control-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+      }
+      
+      .control-item strong {
+        color: #10b981;
+        display: block;
+        margin-bottom: 4px;
+      }
+      
+      .navigation {
+        position: fixed;
+        top: 50%;
+        right: 32px;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 16px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 100;
+        animation: slideInRight 0.6s ease 0.3s both;
+      }
+      
+      .nav-item {
+        display: block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        margin: 8px 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+      
+      .nav-item.active,
+      .nav-item:hover {
+        background: #10b981;
+        transform: scale(1.2);
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+      }
+      
+      .footer {
+        text-align: center;
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        animation: slideInUp 0.6s ease 0.4s both;
+      }
+      
+      .footer-content {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 20px;
+      }
+      
+      .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(45deg, #10b981, #059669);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+      }
+      
+      .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+      }
+      
+      @keyframes slideInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(30px) translateY(-50%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0) translateY(-50%);
+        }
+      }
+      
+      @media (max-width: 768px) {
+        .container {
+          padding: 24px 16px;
+        }
+        
+        .content-card {
+          padding: 24px;
+        }
+        
+        .section {
+          padding: 16px;
+        }
+        
+        .navigation {
+          display: none;
+        }
+        
+        .header h1 {
+          font-size: 28px;
+        }
+        
+        .controls-grid {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
-    <header>
-      <img src="icons/logo.jpeg" alt="NZR DevTool" />
-      <h1>Política de Privacidade</h1>
-    </header>
+    <div class="container">
+      <div class="header">
+        <img src="icons/logo.jpeg" alt="NZR DevTool" />
+        <h1>Política de Privacidade</h1>
+        <p class="subtitle">Transparência e proteção dos seus dados</p>
+      </div>
 
-    <div class="card">
-      <p class="muted">
-        Última atualização: 11/08/2025
-      </p>
+      <!-- Navigation dots -->
+      <div class="navigation">
+        <div class="nav-item active" data-section="intro"></div>
+        <div class="nav-item" data-section="data"></div>
+        <div class="nav-item" data-section="ai"></div>
+        <div class="nav-item" data-section="storage"></div>
+        <div class="nav-item" data-section="sharing"></div>
+        <div class="nav-item" data-section="cookies"></div>
+        <div class="nav-item" data-section="security"></div>
+        <div class="nav-item" data-section="controls"></div>
+        <div class="nav-item" data-section="contact"></div>
+        <div class="nav-item" data-section="changes"></div>
+      </div>
 
-      <h2>1. Introdução</h2>
-      <p>
-        A extensão <strong>NZR DevTool</strong> foi criada para ajudar no preenchimento automático
-        de formulários. Esta Política de Privacidade descreve como tratamos informações ao usar a
-        extensão.
-      </p>
+      <div class="content-card">
+        <div class="last-updated">
+          📅 Última atualização: 16 de agosto de 2025
+        </div>
 
-      <h2>2. Coleta e processamento de dados</h2>
-      <p>
-        A extensão executa scripts de conteúdo na página para <strong>ler a estrutura do formulário</strong>
-        (rótulos, placeholders, tipos de campos e, quando necessário, trechos de contexto visível).
-        Esse processamento ocorre <strong>localmente no seu navegador</strong>.
-      </p>
-      <p>
-        Quando você aciona o preenchimento com IA, a extensão monta um <strong>prompt</strong> contendo
-        apenas metadados necessários dos campos (por exemplo: label, placeholder, tipo e opções do select)
-        e um <strong>resumo de contexto textual</strong> do entorno visível do campo para orientar a IA.
-        O conteúdo enviado é o mínimo necessário para gerar sugestões relevantes.
-      </p>
+        <div class="section" id="intro">
+          <div class="section-header">
+            <span class="section-icon">🛡️</span>
+            <h2>1. Introdução</h2>
+          </div>
+          <p>
+            A extensão <span class="highlight">NZR DevTool</span> foi criada para ajudar no preenchimento automático
+            de formulários e anotação de páginas web. Esta Política de Privacidade descreve como tratamos informações ao usar a
+            extensão, priorizando sempre a sua privacidade e segurança.
+          </p>
+        </div>
 
-      <h2>3. Provedores de IA</h2>
-      <p>
-        A extensão pode usar provedores de IA escolhidos por você nas <em>Opções</em>, como OpenAI
-        ou Google Gemini. As chamadas são feitas diretamente do seu navegador para as APIs dos
-        provedores. <strong>Suas chaves de API</strong> são armazenadas no <code>chrome.storage.sync</code>
-        do próprio navegador e <strong>não são transmitidas ao desenvolvedor da extensão</strong>.
-      </p>
-      <ul>
-        <li>OpenAI API: https://api.openai.com/</li>
-        <li>Google Generative Language API (Gemini): https://generativelanguage.googleapis.com/</li>
-      </ul>
+        <div class="section" id="data">
+          <div class="section-header">
+            <span class="section-icon">📊</span>
+            <h2>2. Coleta e processamento de dados</h2>
+          </div>
+          <p>
+            A extensão executa scripts de conteúdo na página para <span class="highlight">ler a estrutura do formulário</span>
+            (rótulos, placeholders, tipos de campos e, quando necessário, trechos de contexto visível).
+            Esse processamento ocorre <span class="highlight">localmente no seu navegador</span>.
+          </p>
+          <p>
+            Quando você aciona o preenchimento com IA, a extensão monta um <span class="highlight">prompt</span> contendo
+            apenas metadados necessários dos campos (por exemplo: label, placeholder, tipo e opções do select)
+            e um <span class="highlight">resumo de contexto textual</span> do entorno visível do campo para orientar a IA.
+            O conteúdo enviado é o mínimo necessário para gerar sugestões relevantes.
+          </p>
+        </div>
 
-      <h2>4. Armazenamento</h2>
-      <ul>
-        <li><strong>Configurações</strong> (provedor, modelo, chaves de API): guardadas em <code>chrome.storage.sync</code>.</li>
-        <li><strong>Nenhum dado sensível de formulários</strong> é salvo pela extensão.</li>
-      </ul>
+        <div class="section" id="ai">
+          <div class="section-header">
+            <span class="section-icon">🤖</span>
+            <h2>3. Provedores de IA</h2>
+          </div>
+          <p>
+            A extensão pode usar provedores de IA escolhidos por você nas <em>Opções</em>, como OpenAI
+            ou Google Gemini. As chamadas são feitas diretamente do seu navegador para as APIs dos
+            provedores. <span class="highlight">Suas chaves de API</span> são armazenadas no <span class="code">chrome.storage.sync</span>
+            do próprio navegador e <span class="highlight">não são transmitidas ao desenvolvedor da extensão</span>.
+          </p>
+          <div class="api-list">
+            <li>OpenAI API: https://api.openai.com/</li>
+            <li>Google Generative Language API (Gemini): https://generativelanguage.googleapis.com/</li>
+          </div>
+        </div>
 
-      <h2>5. Compartilhamento</h2>
-      <p>
-        A extensão <strong>não vende</strong> dados dos usuários e <strong>não compartilha</strong> dados com
-        terceiros além dos provedores de IA selecionados por você, quando o preenchimento com IA é acionado.
-      </p>
+        <div class="section" id="storage">
+          <div class="section-header">
+            <span class="section-icon">💾</span>
+            <h2>4. Armazenamento</h2>
+          </div>
+          <ul>
+            <li><span class="highlight">Configurações</span> (provedor, modelo, chaves de API): guardadas em <span class="code">chrome.storage.sync</span>.</li>
+            <li><span class="highlight">Preferências de interface</span>: tipos de dados visíveis no painel, idioma.</li>
+            <li><span class="highlight">Nenhum dado sensível de formulários</span> é salvo pela extensão.</li>
+            <li><span class="highlight">Anotações de tela</span> são processadas localmente e não armazenadas permanentemente.</li>
+          </ul>
+        </div>
 
-      <h2>6. Cookies e rastreamento</h2>
-      <p>
-        A extensão não cria cookies próprios. No entanto, as páginas que você visita e os provedores de IA
-        podem usar cookies e rastreadores segundo suas próprias políticas.
-      </p>
+        <div class="section" id="sharing">
+          <div class="section-header">
+            <span class="section-icon">🤝</span>
+            <h2>5. Compartilhamento</h2>
+          </div>
+          <p>
+            A extensão <span class="highlight">não vende</span> dados dos usuários e <span class="highlight">não compartilha</span> dados com
+            terceiros além dos provedores de IA selecionados por você, quando o preenchimento com IA é acionado.
+            Todos os dados permanecem sob seu controle.
+          </p>
+        </div>
 
-      <h2>7. Segurança</h2>
-      <p>
-        Adotamos o princípio de <strong>minimização de dados</strong> no prompt enviado aos provedores de IA e
-        utilizamos as APIs oficiais (HTTPS). Recomendamos manter seu navegador e a extensão atualizados.
-      </p>
+        <div class="section" id="cookies">
+          <div class="section-header">
+            <span class="section-icon">🍪</span>
+            <h2>6. Cookies e rastreamento</h2>
+          </div>
+          <p>
+            A extensão não cria cookies próprios nem realiza rastreamento de usuários. No entanto, as páginas que você visita e os provedores de IA
+            podem usar cookies e rastreadores segundo suas próprias políticas de privacidade.
+          </p>
+        </div>
 
-      <h2>8. Seus controles</h2>
-      <ul>
-        <li>Você pode <strong>habilitar/desabilitar</strong> e <strong>alterar</strong> o provedor de IA em <em>Opções</em>.</li>
-        <li>Você pode <strong>editar/remover</strong> suas chaves de API a qualquer momento.</li>
-        <li>Você pode <strong>evitar o envio</strong> para IA não acionando o preenchimento inteligente.</li>
-        <li>Campos com valor já preenchido <strong>não serão sobrescritos</strong> pela extensão.</li>
-      </ul>
+        <div class="section" id="security">
+          <div class="section-header">
+            <span class="section-icon">🔒</span>
+            <h2>7. Segurança</h2>
+          </div>
+          <p>
+            Adotamos o princípio de <span class="highlight">minimização de dados</span> no prompt enviado aos provedores de IA e
+            utilizamos as APIs oficiais (HTTPS). Recomendamos manter seu navegador e a extensão sempre atualizados
+            para garantir a máxima segurança.
+          </p>
+        </div>
 
-      <h2>9. Contato</h2>
-      <p>
-        Para dúvidas, sugestões ou solicitações relacionadas à privacidade, atualize este arquivo com seu
-        canal de contato preferido (por exemplo, e-mail ou site).
-      </p>
+        <div class="section" id="controls">
+          <div class="section-header">
+            <span class="section-icon">⚙️</span>
+            <h2>8. Seus controles</h2>
+          </div>
+          <div class="controls-grid">
+            <div class="control-item">
+              <strong>Habilitar/Desabilitar IA</strong>
+              Controle completo sobre quando usar os recursos de IA nas Opções
+            </div>
+            <div class="control-item">
+              <strong>Gerenciar Chaves de API</strong>
+              Edite ou remova suas chaves de API a qualquer momento
+            </div>
+            <div class="control-item">
+              <strong>Controlar Envios</strong>
+              Evite envios para IA simplesmente não acionando o preenchimento inteligente
+            </div>
+            <div class="control-item">
+              <strong>Proteção de Dados</strong>
+              Campos preenchidos não são sobrescritos automaticamente
+            </div>
+            <div class="control-item">
+              <strong>Configurar Dados Visíveis</strong>
+              Escolha quais tipos de dados aparecem no painel
+            </div>
+            <div class="control-item">
+              <strong>Modo Anotação</strong>
+              Use ferramentas de anotação sem envio de dados externos
+            </div>
+          </div>
+        </div>
 
-      <h2>10. Alterações nesta política</h2>
-      <p>
-        Podemos atualizar esta Política de Privacidade periodicamente. Alterações relevantes serão publicadas
-        nesta página. Recomendamos revisar esta política de tempos em tempos.
-      </p>
+        <div class="section" id="contact">
+          <div class="section-header">
+            <span class="section-icon">📧</span>
+            <h2>9. Contato</h2>
+          </div>
+          <p>
+            Para dúvidas, sugestões ou solicitações relacionadas à privacidade, você pode entrar em contato
+            através dos canais oficiais da extensão. Valorizamos o feedback dos usuários e estamos comprometidos
+            em manter a transparência sobre nossas práticas de privacidade.
+          </p>
+        </div>
 
-      <footer>
-        © 2025 — NZR DevTool. Todos os direitos reservados.
-      </footer>
+        <div class="section" id="changes">
+          <div class="section-header">
+            <span class="section-icon">🔄</span>
+            <h2>10. Alterações nesta política</h2>
+          </div>
+          <p>
+            Podemos atualizar esta Política de Privacidade periodicamente para refletir mudanças em nossas práticas
+            ou por outros motivos operacionais, legais ou regulamentares. Alterações relevantes serão publicadas
+            nesta página com data de atualização. Recomendamos revisar esta política regularmente.
+          </p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="footer-content">
+          © 2025 — NZR DevTool. Todos os direitos reservados.
+        </div>
+        <a href="javascript:history.back()" class="back-button">
+          ← Voltar às Configurações
+        </a>
+      </div>
     </div>
+
+    <script>
+      // Navigation functionality
+      const navItems = document.querySelectorAll('.nav-item');
+      const sections = document.querySelectorAll('.section');
+      
+      // Smooth scroll to section
+      navItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+          const targetSection = sections[index];
+          targetSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Update active nav item
+          navItems.forEach(nav => nav.classList.remove('active'));
+          item.classList.add('active');
+        });
+      });
+      
+      // Update active nav item on scroll
+      const observerOptions = {
+        root: null,
+        rootMargin: '-50% 0px -50% 0px',
+        threshold: 0
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const index = Array.from(sections).indexOf(entry.target);
+            navItems.forEach(nav => nav.classList.remove('active'));
+            if (navItems[index]) {
+              navItems[index].classList.add('active');
+            }
+          }
+        });
+      }, observerOptions);
+      
+      sections.forEach(section => observer.observe(section));
+      
+      // Add hover effects to sections
+      sections.forEach(section => {
+        section.addEventListener('mouseenter', () => {
+          section.style.background = 'rgba(255, 255, 255, 0.12)';
+        });
+        
+        section.addEventListener('mouseleave', () => {
+          section.style.background = 'rgba(255, 255, 255, 0.05)';
+        });
+      });
+    </script>
   </body>
 </html>
