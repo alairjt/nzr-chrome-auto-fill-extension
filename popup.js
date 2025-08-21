@@ -50,6 +50,20 @@ if (screenAnnotatorBtn) {
 // Initialize UI
 const t = i18n();
 
+// Load and display extension version
+function loadExtensionVersion() {
+  const manifest = chrome.runtime.getManifest();
+  const versionElement = document.getElementById('extensionVersion');
+  if (versionElement && manifest.version) {
+    versionElement.textContent = `v${manifest.version}`;
+  }
+}
+
+// Call version loader when DOM is ready
+document.addEventListener('DOMContentLoaded', loadExtensionVersion);
+// Also call it immediately in case DOM is already loaded
+loadExtensionVersion();
+
 function setStatus(html, cls = '') {
   statusEl.className = `show ${cls}`;
   statusEl.innerHTML = html;

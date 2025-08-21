@@ -2,6 +2,18 @@
 
 Extensão Chrome completa para preenchimento automático de formulários e anotação de páginas web. Inclui geração de dados fictícios, IA para preenchimento inteligente e ferramentas avançadas de anotação e screenshot.
 
+## 🆕 Novidades da v0.4.1
+
+- Melhorias no Painel de Dados:
+  - Botão de fixar (Pin) com estado persistido em `chrome.storage.sync`.
+  - Offset de layout quando fixado (`body.nzr-panel-pinned`) para não cobrir o conteúdo.
+  - Acessibilidade com `aria-pressed` e feedback visual de estado.
+- Novo dado: CEP no formato `00000-000` no painel, menu de contexto e configurações (habilitar/desabilitar).
+- Compatibilidade de preenchimento: fallback de simulação de digitação (`simulateTyping`) quando eventos não propagam em frameworks/máscaras.
+- Atalhos: envio de mensagens com fallback de injeção do content script (`sendMessageWithFallback`) para `toggle-data-panel` e `start-annotation-mode`.
+- Captura de tela: suporte do background para capturar a aba visível (`REQUEST_VISIBLE_TAB_CAPTURE`) e abrir como data URL (`OPEN_DATA_URL_TAB`); recortes mais precisos com `devicePixelRatio`.
+- Opções (UX): ripple no botão salvar, feedback visual em checkboxes e mensagens de status animadas.
+
 ## 🆕 Novidades da v0.4.0
 - **📌 Fixar Painel (Pin):** opção para manter o painel lateral fixo sem sobrepor o conteúdo da página. Aplica deslocamento no layout e lembra sua preferência.
 - **📮 CEP:** novo gerador de CEP no formato `00000-000`, disponível no painel, no menu de contexto e com opção para habilitar/desabilitar nas configurações.
@@ -156,6 +168,25 @@ Extensão Chrome completa para preenchimento automático de formulários e anota
 ```
 Gera `dist/nzr-devtool-vX.X.X.zip` pronto para upload.
 
+### 📦 Publicação (Release)
+1. Atualize a versão no `manifest.json` (`version` e `version_name`) — atual: 0.4.1.
+2. Gere o pacote:
+   ```bash
+   ./build-zip.sh
+   ```
+   O arquivo ficará em `dist/`.
+3. (Opcional) Gere tag e release no Git:
+   ```bash
+   git add CHANGELOG.md README.md
+   git commit -m "docs: atualiza README e adiciona CHANGELOG para 0.4.1"
+   git tag v0.4.1 -m "Release 0.4.1"
+   git push origin --tags
+   ```
+4. Publicação na Chrome Web Store:
+   - Acesse o Developer Dashboard.
+   - Selecione a extensão (nova ou existente).
+   - Faça upload do ZIP gerado em `dist/` e submeta para revisão.
+
 ### Servidor de Teste Local
 ```bash
 python3 -m http.server 5173
@@ -163,9 +194,10 @@ python3 -m http.server 5173
 ```
 
 ### Estrutura de Testes
-- `test/simple-form.html` - Formulário básico
-- `test/complex-form.html` - Formulário avançado
-- `test/react-form.html` - Teste com React/Radix
+- `test/test.html` - Página de teste simples
+- `test/test-form.html` - Formulário básico
+- `test/material-test.html` - Exemplos com Material UI
+- `test/radix-tabs-test.html` - Exemplos com Radix/React
 
 ## 🔒 Privacidade e Segurança
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "NZR DevTool",
-  "version": "0.4.0",
-  "version_name": "0.4.0",
+  "version": "0.4.1",
+  "version_name": "0.4.1",
   "default_locale": "pt_BR",
   "description": "Geração de dados para formulários.",
   "icons": {

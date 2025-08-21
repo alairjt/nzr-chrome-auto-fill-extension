@@ -72,6 +72,7 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
     let SELECTED_INPUT = null;
     let DATA_TYPES_VISIBLE = null; // null => all types visible
     let DATA_PANEL_PINNED = false; // when true, page content is offset so panel doesn't overlay
+    let MOUSE_POSITION = { x: 0, y: 0 }; // track mouse position for better positioning
   
     // Funções de navegação entre abas removidas - não são mais utilizadas
   
@@ -895,12 +896,35 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
             transform: translateY(-1px) !important;
           }
           
-          /* Selected Input Highlight */
+          /* Selected Input Highlight - Enhanced for single selection */
           .nzr-selected-input {
             background: #fef3c7 !important;
             border: 2px solid #f59e0b !important;
             outline: none !important;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1) !important;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+            position: relative !important;
+            z-index: 1000 !important;
+            transition: all 0.2s ease !important;
+          }
+          
+          /* Pulse animation for selected input */
+          .nzr-selected-input::before {
+            content: '' !important;
+            position: absolute !important;
+            top: -4px !important;
+            left: -4px !important;
+            right: -4px !important;
+            bottom: -4px !important;
+            background: rgba(245, 158, 11, 0.1) !important;
+            border-radius: 4px !important;
+            animation: nzr-selection-pulse 2s infinite !important;
+            pointer-events: none !important;
+            z-index: -1 !important;
+          }
+          
+          @keyframes nzr-selection-pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.1; transform: scale(1.02); }
           }
           
           /* Animation Classes */
@@ -1425,19 +1449,21 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
     function selectInput(input) {
       console.log('selectInput called with:', input);
       
-      // Clear previous selection
-      if (SELECTED_INPUT) {
+      // Clear previous selection - ensure only one selection at a time
+      if (SELECTED_INPUT && SELECTED_INPUT !== input) {
         console.log('Clearing previous selection:', SELECTED_INPUT);
         SELECTED_INPUT.classList.remove('nzr-selected-input');
         SELECTED_INPUT.dataset.nzrSelected = 'false';
       }
       
-      // Clear any other marked inputs
+      // Clear any other marked inputs to enforce single selection
       const previouslyMarked = document.querySelectorAll('[data-nzr-selected="true"]');
       console.log('Clearing previously marked inputs:', previouslyMarked.length);
       previouslyMarked.forEach(el => {
-        el.classList.remove('nzr-selected-input');
-        el.dataset.nzrSelected = 'false';
+        if (el !== input) {
+          el.classList.remove('nzr-selected-input');
+          el.dataset.nzrSelected = 'false';
+        }
       });
       
       // Set new selection
@@ -1447,6 +1473,21 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       // Store input reference persistently
       input.dataset.nzrSelected = 'true';
       console.log('Set new selection, SELECTED_INPUT is now:', SELECTED_INPUT);
+      
+      // Scroll element into view if it's near mouse position but offscreen
+      const inputRect = input.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      
+      // Check if input is outside viewport but mouse is near it
+      if (inputRect.bottom < 0 || inputRect.top > viewportHeight || 
+          inputRect.right < 0 || inputRect.left > viewportWidth) {
+        input.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center', 
+          inline: 'nearest' 
+        });
+      }
       
       // Update panel info
       updateSelectedInfo(input);
@@ -1904,7 +1945,7 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       lastY: 0,
       strokeColor: '#ef4444',
       strokeWidth: 3,
-      fillColor: 'rgba(239, 68, 68, 0.2)',
+      fillColor: 'rgba(239, 68, 68, 0.3)',
       fontSize: 16,
       selections: [],
       annotations: [],
@@ -2070,6 +2111,35 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           display: block !important;
           width: 100% !important;
           height: 100% !important;
+        }
+        
+        /* Hide remove buttons by default */
+        .nzr-remove-btn {
+          position: absolute !important;
+          top: -8px !important;
+          right: -8px !important;
+          width: 16px !important;
+          height: 16px !important;
+          background: #ef4444 !important;
+          color: white !important;
+          border: none !important;
+          border-radius: 50% !important;
+          font-size: 10px !important;
+          cursor: pointer !important;
+          z-index: 2147483651 !important;
+          opacity: 0 !important;
+          transition: opacity 0.2s ease !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          pointer-events: auto !important;
+        }
+        
+        /* Show remove buttons on hover */
+        .nzr-shape-element:hover .nzr-remove-btn,
+        .nzr-text-element:hover .nzr-remove-btn,
+        .nzr-selection-area:hover .nzr-remove-btn {
+          opacity: 1 !important;
         }
         .nzr-save-dropdown {
           position: relative !important;
@@ -2272,7 +2342,7 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       
       strokeColorInput.addEventListener('change', (e) => {
         ANNOTATION.strokeColor = e.target.value;
-        ANNOTATION.fillColor = e.target.value + '33'; // Add transparency
+        ANNOTATION.fillColor = e.target.value + '4D'; // Add more opacity (30% instead of 20%)
       });
       
       strokeWidthInput.addEventListener('input', (e) => {
@@ -2712,6 +2782,9 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       const preview = document.querySelector('.nzr-selection-preview');
       if (preview) preview.remove();
       
+      // Clear existing selections to ensure only one at a time
+      clearAllSelections();
+      
       // Create permanent selection
       const selection = document.createElement('div');
       selection.className = 'nzr-selection-area';
@@ -2723,12 +2796,15 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       // Add remove button
       const removeBtn = document.createElement('button');
       removeBtn.innerHTML = '✕';
-      removeBtn.style.cssText = `
-        position: absolute; top: -8px; right: -8px; width: 16px; height: 16px;
-        background: #ef4444; color: white; border: none; border-radius: 50%;
-        font-size: 10px; cursor: pointer; z-index: 1;
-      `;
-      removeBtn.addEventListener('click', () => selection.remove());
+      removeBtn.className = 'nzr-remove-btn';
+      removeBtn.addEventListener('click', () => {
+        selection.remove();
+        // Remove from selections array
+        const index = ANNOTATION.selections.indexOf(selection);
+        if (index > -1) {
+          ANNOTATION.selections.splice(index, 1);
+        }
+      });
       selection.appendChild(removeBtn);
       
       ANNOTATION.overlay.appendChild(selection);
@@ -2739,6 +2815,17 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       selection.classList.add('nzr-moveable-element');
       setupElementMovement(selection);
       console.log('Selection area made moveable:', selection);
+    }
+    
+    function clearAllSelections() {
+      // Remove all existing selections
+      ANNOTATION.selections.forEach(sel => {
+        if (sel && sel.parentNode) {
+          sel.remove();
+        }
+      });
+      ANNOTATION.selections = [];
+      console.log('Cleared all selections');
     }
 
     function drawShapePreview(ctx, startX, startY, endX, endY) {
@@ -2755,11 +2842,14 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           ctx.fillRect(startX, startY, width, height);
           break;
         case 'circle':
-          const radius = Math.sqrt(width * width + height * height) / 2;
+          // Draw ellipse that fits properly within the bounds
           const centerX = startX + width / 2;
           const centerY = startY + height / 2;
+          const radiusX = Math.abs(width) / 2 - ctx.lineWidth / 2;
+          const radiusY = Math.abs(height) / 2 - ctx.lineWidth / 2;
+          
           ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+          ctx.ellipse(centerX, centerY, Math.max(radiusX, 0), Math.max(radiusY, 0), 0, 0, 2 * Math.PI);
           ctx.fill();
           ctx.stroke();
           break;
@@ -2812,18 +2902,22 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           shapeEl.setAttribute('y', '0');
           shapeEl.setAttribute('width', width);
           shapeEl.setAttribute('height', height);
-          shapeEl.setAttribute('fill', 'none');
+          shapeEl.setAttribute('fill', ANNOTATION.fillColor);
           shapeEl.setAttribute('stroke', ANNOTATION.strokeColor);
           shapeEl.setAttribute('stroke-width', ANNOTATION.strokeWidth);
           break;
           
         case 'circle':
           shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+          // Adjust for stroke width to prevent clipping
+          const maxRx = (width - ANNOTATION.strokeWidth) / 2;
+          const maxRy = (height - ANNOTATION.strokeWidth) / 2;
+          
           shapeEl.setAttribute('cx', width / 2);
           shapeEl.setAttribute('cy', height / 2);
-          shapeEl.setAttribute('rx', width / 2);
-          shapeEl.setAttribute('ry', height / 2);
-          shapeEl.setAttribute('fill', 'none');
+          shapeEl.setAttribute('rx', Math.max(maxRx, 0));
+          shapeEl.setAttribute('ry', Math.max(maxRy, 0));
+          shapeEl.setAttribute('fill', ANNOTATION.fillColor);
           shapeEl.setAttribute('stroke', ANNOTATION.strokeColor);
           shapeEl.setAttribute('stroke-width', ANNOTATION.strokeWidth);
           break;
@@ -3034,6 +3128,21 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           editTextElement(textElement);
         });
         
+        // Add remove button
+        const removeBtn = document.createElement('div');
+        removeBtn.innerHTML = '×';
+        removeBtn.className = 'nzr-remove-btn';
+        removeBtn.title = 'Remover texto';
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const index = ANNOTATION.textElements.indexOf(textElement);
+          if (index > -1) {
+            ANNOTATION.textElements.splice(index, 1);
+          }
+          textElement.remove();
+        });
+        
+        textElement.appendChild(removeBtn);
         ANNOTATION.overlay.appendChild(textElement);
         ANNOTATION.textElements.push(textElement);
         
@@ -3133,53 +3242,51 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           return;
         }
         
-        // Handle multiple selections by getting bounding box
-        let selectionRect;
-        if (ANNOTATION.selections.length === 1) {
-          // Single selection
-          const selection = ANNOTATION.selections[0];
-          selectionRect = {
-            left: parseFloat(selection.style.left),
-            top: parseFloat(selection.style.top),
-            width: parseFloat(selection.style.width),
-            height: parseFloat(selection.style.height)
-          };
-        } else {
-          // Multiple selections - get bounding box
-          let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
-          
-          ANNOTATION.selections.forEach(selection => {
-            const left = parseFloat(selection.style.left);
-            const top = parseFloat(selection.style.top);
-            const width = parseFloat(selection.style.width);
-            const height = parseFloat(selection.style.height);
-            
-            minX = Math.min(minX, left);
-            minY = Math.min(minY, top);
-            maxX = Math.max(maxX, left + width);
-            maxY = Math.max(maxY, top + height);
-          });
-          
-          selectionRect = {
-            left: minX,
-            top: minY,
-            width: maxX - minX,
-            height: maxY - minY
-          };
-          
-          showEnhancedMessage(`📦 Capturando ${ANNOTATION.selections.length} seleções`, 'info');
-        }
+        // Get the single selection area (now we only allow one)
+        const selection = ANNOTATION.selections[0];
+        const selectionRect = {
+          left: parseFloat(selection.style.left),
+          top: parseFloat(selection.style.top),
+          width: parseFloat(selection.style.width),
+          height: parseFloat(selection.style.height)
+        };
+        
+        // Temporarily hide selection indicators and toolbar for clean capture
+        const elementsToHide = [
+          ...ANNOTATION.selections,
+          ANNOTATION.toolbar,
+          document.querySelector('.nzr-selection-preview')
+        ].filter(el => el);
+        
+        // Hide all visual indicators
+        elementsToHide.forEach(el => {
+          if (el) {
+            el.style.opacity = '0';
+            el.style.pointerEvents = 'none';
+          }
+        });
+        
+        // Wait a brief moment for UI to update
+        await new Promise(resolve => setTimeout(resolve, 50));
         
         // Request screenshot from background script
         const response = await new Promise((resolve) => {
           chrome.runtime.sendMessage({ type: 'REQUEST_VISIBLE_TAB_CAPTURE' }, resolve);
         });
         
+        // Restore visual indicators immediately after capture
+        elementsToHide.forEach(el => {
+          if (el) {
+            el.style.opacity = '';
+            el.style.pointerEvents = '';
+          }
+        });
+        
         if (!response.ok) {
           throw new Error(response.error || 'Falha na captura');
         }
         
-        // Create composite image
+        // Create composite image with exact selection area
         const img = new Image();
         img.onload = () => {
           const tempCanvas = document.createElement('canvas');
@@ -3187,30 +3294,24 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           tempCanvas.height = selectionRect.height;
           const tempCtx = tempCanvas.getContext('2d');
           
-          // Calculate scale factors
-          const scaleX = ANNOTATION.canvas.width / window.innerWidth;
-          const scaleY = ANNOTATION.canvas.height / window.innerHeight;
+          // Calculate device pixel ratio for accurate cropping
+          const devicePixelRatio = window.devicePixelRatio || 1;
+          const scaleX = img.width / window.innerWidth;
+          const scaleY = img.height / window.innerHeight;
           
-          // Draw cropped screenshot
+          // Adjust selection coordinates for device pixel ratio
+          const adjustedLeft = selectionRect.left * scaleX;
+          const adjustedTop = selectionRect.top * scaleY;
+          const adjustedWidth = selectionRect.width * scaleX;
+          const adjustedHeight = selectionRect.height * scaleY;
+          
+          // Draw exact cropped screenshot without selection indicators
           tempCtx.drawImage(
             img,
-            selectionRect.left * scaleX,
-            selectionRect.top * scaleY,
-            selectionRect.width * scaleX,
-            selectionRect.height * scaleY,
-            0,
-            0,
-            selectionRect.width,
-            selectionRect.height
-          );
-          
-          // Draw annotations (cropped to selection)
-          tempCtx.drawImage(
-            ANNOTATION.canvas,
-            selectionRect.left,
-            selectionRect.top,
-            selectionRect.width,
-            selectionRect.height,
+            adjustedLeft,
+            adjustedTop,
+            adjustedWidth,
+            adjustedHeight,
             0,
             0,
             selectionRect.width,
@@ -3676,6 +3777,12 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       document.addEventListener('keydown', escHandler, true);
     }
 
+
+  // Track mouse position globally for better selection positioning
+  document.addEventListener('mousemove', (e) => {
+    MOUSE_POSITION.x = e.clientX;
+    MOUSE_POSITION.y = e.clientY;
+  });
 
   // Extend message handler for annotation mode
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
