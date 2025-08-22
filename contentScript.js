@@ -1937,7 +1937,7 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       ctx: null,
       toolbar: null,
       overlay: null,
-      currentTool: 'select',
+      currentTool: null,
       isDrawing: false,
       startX: 0,
       startY: 0,
@@ -2267,7 +2267,7 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       
       toolbar.innerHTML = `
         <div class="nzr-tool-group">
-          <button class="nzr-tool-btn active" data-tool="select" title="Seleção livre (S)">⬚</button>
+          <button class="nzr-tool-btn" data-tool="select" title="Seleção livre (S)">⬚</button>
           <button class="nzr-tool-btn" data-tool="brush" title="Pincel (B)">🖌</button>
           <button class="nzr-tool-btn" data-tool="text" title="Texto (T)">T</button>
           <button class="nzr-tool-btn" data-tool="move" title="Mover elementos (M)">✋</button>
@@ -2394,9 +2394,11 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       }
       
       canvas.addEventListener('mousedown', (e) => {
-        // Skip canvas handling when move tool is active - elements handle their own events
-        if (ANNOTATION.currentTool === 'move') {
-          console.log('Move tool active - canvas ignoring mousedown');
+        // Skip canvas handling when no tool is selected or move tool is active
+        if (!ANNOTATION.currentTool || ANNOTATION.currentTool === 'move') {
+          if (ANNOTATION.currentTool === 'move') {
+            console.log('Move tool active - canvas ignoring mousedown');
+          }
           return;
         }
         
@@ -2421,8 +2423,8 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
         if (ANNOTATION.currentTool === 'brush') {
           ANNOTATION.ctx.beginPath();
           ANNOTATION.ctx.moveTo(pos.x, pos.y);
-        } else if (['rectangle', 'circle', 'arrow', 'line'].includes(ANNOTATION.currentTool)) {
-          // Create temporary canvas for shape preview
+        } else if (['rectangle', 'circle', 'arrow', 'line', 'select'].includes(ANNOTATION.currentTool)) {
+          // Create temporary canvas for shape/selection preview
           if (!tempCanvas) {
             tempCanvas = document.createElement('canvas');
             tempCanvas.width = canvas.width;
@@ -2438,8 +2440,11 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       });
       
       canvas.addEventListener('mousemove', (e) => {
-        // Skip canvas handling when move tool is active
-        if (ANNOTATION.currentTool === 'move') {
+        // Skip canvas handling when no tool is selected or move tool is active
+        if (!ANNOTATION.currentTool || ANNOTATION.currentTool === 'move') {
+          // Remove any lingering selection preview when no tool is active
+          const preview = document.querySelector('.nzr-selection-preview');
+          if (preview) preview.remove();
           return;
         }
         
@@ -2454,18 +2459,20 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
           ANNOTATION.ctx.stroke();
           ANNOTATION.ctx.beginPath();
           ANNOTATION.ctx.moveTo(pos.x, pos.y);
-        } else if (ANNOTATION.currentTool === 'select') {
-          drawSelectionPreview(ANNOTATION.startX, ANNOTATION.startY, pos.x, pos.y);
         } else if (tempCtx) {
-          // Clear temp canvas and draw shape preview
+          // Clear temp canvas and draw shape/selection preview
           tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-          drawShapePreview(tempCtx, ANNOTATION.startX, ANNOTATION.startY, pos.x, pos.y);
+          if (ANNOTATION.currentTool === 'select') {
+            drawSelectionPreviewOnCanvas(tempCtx, ANNOTATION.startX, ANNOTATION.startY, pos.x, pos.y);
+          } else {
+            drawShapePreview(tempCtx, ANNOTATION.startX, ANNOTATION.startY, pos.x, pos.y);
+          }
         }
       });
       
       canvas.addEventListener('mouseup', (e) => {
-        // Skip canvas handling when move tool is active
-        if (ANNOTATION.currentTool === 'move') {
+        // Skip canvas handling when no tool is selected or move tool is active
+        if (!ANNOTATION.currentTool || ANNOTATION.currentTool === 'move') {
           return;
         }
         
@@ -2476,15 +2483,19 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
         
         if (ANNOTATION.currentTool === 'select') {
           createSelectionArea(ANNOTATION.startX, ANNOTATION.startY, pos.x, pos.y);
+          // Ensure any lingering preview is removed
+          const preview = document.querySelector('.nzr-selection-preview');
+          if (preview) preview.remove();
         } else if (['rectangle', 'circle', 'arrow', 'line'].includes(ANNOTATION.currentTool)) {
           // Draw final shape on main canvas
           drawShape(ANNOTATION.ctx, ANNOTATION.startX, ANNOTATION.startY, pos.x, pos.y);
-          // Clean up temp canvas
-          if (tempCanvas) {
-            tempCanvas.remove();
-            tempCanvas = null;
-            tempCtx = null;
-          }
+        }
+        
+        // Clean up temp canvas for all tools that use it
+        if (tempCanvas && ['rectangle', 'circle', 'arrow', 'line', 'select'].includes(ANNOTATION.currentTool)) {
+          tempCanvas.remove();
+          tempCanvas = null;
+          tempCtx = null;
         }
       });
     }
@@ -2763,6 +2774,9 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
     }
 
     function drawSelectionPreview(startX, startY, endX, endY) {
+      // Only draw preview if we're actively drawing
+      if (!ANNOTATION.isDrawing) return;
+      
       // Remove previous selection preview
       const prev = document.querySelector('.nzr-selection-preview');
       if (prev) prev.remove();
@@ -2773,8 +2787,26 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       selection.style.top = Math.min(startY, endY) + 'px';
       selection.style.width = Math.abs(endX - startX) + 'px';
       selection.style.height = Math.abs(endY - startY) + 'px';
+      selection.style.pointerEvents = 'none';
       
       ANNOTATION.overlay.appendChild(selection);
+    }
+    
+    function drawSelectionPreviewOnCanvas(ctx, startX, startY, endX, endY) {
+      const width = endX - startX;
+      const height = endY - startY;
+      
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.1)';
+      
+      // Draw selection rectangle
+      ctx.fillRect(startX, startY, width, height);
+      ctx.strokeRect(startX, startY, width, height);
+      
+      // Reset line dash for other drawings
+      ctx.setLineDash([]);
     }
 
     function createSelectionArea(startX, startY, endX, endY) {
@@ -3019,6 +3051,10 @@ function setPinned(value, persist = true, panel = DATA_PANEL_INSTANCE) {
       // Clear selections
       ANNOTATION.selections.forEach(sel => sel.remove());
       ANNOTATION.selections = [];
+      
+      // Clear any lingering selection previews
+      const previews = document.querySelectorAll('.nzr-selection-preview');
+      previews.forEach(preview => preview.remove());
       
       // Clear text elements
       ANNOTATION.textElements.forEach(textEl => textEl.remove());

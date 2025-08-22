@@ -2,6 +2,12 @@
 
 Todas as mudanças notáveis deste projeto serão documentadas aqui.
 
+## [0.4.2]
+
+- Correção: modo de anotação agora inicia sem ferramenta ativa por padrão, requerendo seleção manual da ferramenta desejada.
+- Correção: problema onde mouse não desgrudava da ferramenta de seleção após soltar o botão, padronizando comportamento com outras ferramentas (retângulo, círculo, etc.).
+- Melhoria: ferramenta de seleção agora usa canvas temporário para preview, como as demais ferramentas, garantindo comportamento consistente.
+
 ## [0.4.1]
 
 - Dados: CEP incluído com geração no formato `00000-000` e presença no menu de contexto e nas opções de exibição do painel de dados (`options.html`).
